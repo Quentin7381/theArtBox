@@ -1,5 +1,9 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.0.2 Ajout base de donnee et lignes d'oeuvres
+
+Cfg.php modifie pour obtenir les informations de connexion a la base de donnee.
+
 ### Feat_BDD 0.0.1
 
 Ajout du formualaire d'ajout d'oeuvre.

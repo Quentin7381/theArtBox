@@ -42,3 +42,8 @@ $root = dirname(__DIR__);
 $root = str_replace('\\', '/', $root);
 $root = str_replace($cfg->urlRoot, '', $root);
 $cfg->root = $root;
+
+$cfg->db_host = 'localhost';
+$cfg->db_user = 'root';
+$cfg->db_pass = '';
+$cfg->db_name = 'theartbox';
