@@ -1,6 +1,9 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.0.6 Ajout methode save, insert et update Oeuvre
 
+La methode update choisir entre INSERT et UPDATE selon si l'objet est deja en base ou non.
+L'objet est toujours hydrate avant un update.
 
 ### Feat_BDD 0.0.5 Ajout methode hydrate Oeuvre
 

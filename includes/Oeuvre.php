@@ -246,14 +246,46 @@ class Oeuvre {
         $stmt = self::$bdd->prepare('SELECT * FROM '.self::$table.' WHERE id = :id');
         $stmt->execute(['id' => $this->id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        if(!$result) return false;
         
-        if(!empty($result))
         foreach ($result as $key => $value) {
             if($this->$key === null) $this->$key = $value;
         }
 
         $this->hydrated = true;
 
+        return true;
+    }
+
+    public function save(){
+        if($this->id === null) return $this->insert();
+        return $this->update();
+    }
+
+    private function insert(){
+        $stmt = self::$bdd->prepare('INSERT INTO '.self::$table.' (titre, artiste, url_image, description) VALUES (:titre, :artiste, :url_image, :description)');
+        $stmt->execute([
+            'titre' => $this->titre,
+            'artiste' => $this->artiste,
+            'url_image' => $this->url_image,
+            'description' => $this->description
+        ]);
+        $this->id = self::$bdd->lastInsertId();
+        return true;
+    }
+
+    private function update(){
+        if(!$this->hydrated) $this->hydrate();
+        if(!$this->hydrated) $this->insert(); // Si l'instance n'existe pas en base, on l'insère
+
+        $stmt = self::$bdd->prepare('UPDATE '.self::$table.' SET titre = :titre, artiste = :artiste, url_image = :url_image, description = :description WHERE id = :id');
+        $stmt->execute([
+            'id' => $this->id,
+            'titre' => $this->titre,
+            'artiste' => $this->artiste,
+            'url_image' => $this->url_image,
+            'description' => $this->description
+        ]);
         return true;
     }
 }

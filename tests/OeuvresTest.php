@@ -271,4 +271,64 @@ class OeuvresTest extends TestSetup{
 
         $this->assertEquals('titre_3', $oeuvre->titre);
     }
+
+    function test__save(){
+        // save sans id effecture un insert et ajoute un l'id
+        $oeuvre = new Oeuvre();
+        $oeuvre->titre = 'titre_4';
+        $oeuvre->artiste = 'artiste_4';
+        $oeuvre->url_image = 'image_4';
+        $oeuvre->description = 'description_4';
+        $oeuvre->save();
+
+        $this->assertNotNull($oeuvre->id);
+
+        $fetch = Oeuvre::fetch([
+            'id' => $oeuvre->id
+        ]);
+        $this->assertEquals(1, count($fetch));
+        $this->assertEquals('titre_4', $fetch[0]->titre);
+        $this->assertEquals('artiste_4', $fetch[0]->artiste);
+        $this->assertEquals('image_4', $fetch[0]->url_image);
+        $this->assertEquals('description_4', $fetch[0]->description);
+
+        // save avec id effectue un update
+        $existingID = Oeuvre::fetch([], ['limit' => 1])[0]->id;
+        $oeuvre = new Oeuvre();
+        $oeuvre->titre = 'titre_5';
+        $oeuvre->id = $existingID;
+
+        $oeuvre->save();
+
+        $fetch = Oeuvre::fetch([
+            'id' => $existingID
+        ]);
+        $this->assertEquals(1, count($fetch));
+        $this->assertEquals('titre_5', $fetch[0]->titre);
+        $this->assertEquals('artiste_1', $fetch[0]->artiste);
+        $this->assertEquals('image_1', $fetch[0]->url_image);
+        $this->assertEquals('description_1', $fetch[0]->description);
+
+        // save avec id inexistant effectue un insert
+        $oeuvre = new Oeuvre();
+        $oeuvre->titre = 'titre_6';
+        $oeuvre->artiste = 'artiste_6';
+        $oeuvre->url_image = 'image_6';
+        $oeuvre->description = 'description_6';
+        $oeuvre->id = -1;
+
+        $oeuvre->save();
+
+        $this->assertNotNull($oeuvre->id);
+
+        $fetch = Oeuvre::fetch([
+            'id' => $oeuvre->id
+        ]);
+
+        $this->assertEquals(1, count($fetch));
+        $this->assertEquals('titre_6', $fetch[0]->titre);
+        $this->assertEquals('artiste_6', $fetch[0]->artiste);
+        $this->assertEquals('image_6', $fetch[0]->url_image);
+        $this->assertEquals('description_6', $fetch[0]->description);
+    }
 }
