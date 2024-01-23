@@ -30,9 +30,15 @@ class Config {
 }
 
 $cfg = Config::getInstance();
-$cfg->serverRoot = $_SERVER['DOCUMENT_ROOT'];
+
+// Calcul du chemin du serveur
+// Note : theArtbox est le nom du dossier dans lequel se trouve le projet
+$calledUrl = $_SERVER['REQUEST_URI'];
+$regex = '/(^.*\/theArtbox\/)/';
+preg_match($regex, $calledUrl, $matches);
+$cfg->urlRoot = $matches[0] ?? '/';
 
 $root = dirname(__DIR__);
 $root = str_replace('\\', '/', $root);
-$root = str_replace($cfg->serverRoot, '', $root);
+$root = str_replace($cfg->urlRoot, '', $root);
 $cfg->root = $root;

@@ -109,7 +109,7 @@ $oeuvres = [
 ];
 
 foreach ($oeuvres as $key => $oeuvre) {
-    $oeuvres[$key]['link'] = $cfg->root.'/view/?id='.$key;
-    $oeuvres[$key]['image'] = $cfg->root.'/img/'.$oeuvre['image'];
+    $oeuvres[$key]['link'] = $cfg->urlRoot.'view/?id='.$key;
+    $oeuvres[$key]['image'] = $cfg->urlRoot.'img/'.$oeuvre['image'];
     $oeuvres[$key]['id'] = $key;
 }
