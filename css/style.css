@@ -1,3 +1,5 @@
+/* ----- GLOBALS ----- */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 html, body {
@@ -9,11 +11,12 @@ html, body {
     font-family: 'Poppins', sans-serif;
 }
 
-
 a {
     text-decoration: none;
     color: inherit;
 }
+
+/* ----- HEADER ----- */
 
 header {
     display: flex;
@@ -33,17 +36,21 @@ header ul {
     margin: 0;
 }
 
+/* ----- MAIN ----- */
+
 main {
     max-width: 1080px;
     margin: auto;
 }
+
+/* ----- FOOTER ----- */
 
 footer {
     text-align: center;
     font-size: 12px;
 }
 
-
+/* ----- LISTE OEUVRES ----- */
 
 #liste-oeuvres {
     display: flex;
@@ -74,6 +81,8 @@ footer {
     margin-bottom: 20px;
 }
 
+/* ----- DETAIL OEUVRE ----- */
+
 #detail-oeuvre {
     display: flex;
     flex-wrap: wrap;
@@ -96,6 +105,15 @@ footer {
 
 #contenu-oeuvre {
     max-width: 470px;
+}
+
+/* ----- AJOUT OEUVRE ----- */
+
+.ajoutOeuvre {
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
+    margin: auto;
 }
 
 @media (max-width: 850px) {
