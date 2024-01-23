@@ -1,5 +1,11 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.0.3 Ajout du setup de tests phpunit
+
+Ajout des librairies phpunit via composer
+Ajout du dossier tests/
+Ajout du fichier phpunit.xml
+
 ### Feat_BDD 0.0.2 Ajout base de donnee et lignes d'oeuvres
 
 Cfg.php modifie pour obtenir les informations de connexion a la base de donnee.

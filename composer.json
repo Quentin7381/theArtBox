@@ -1,0 +1,17 @@
+{
+    "name": "quentin/the-artbox",
+    "autoload": {
+        "psr-4": {
+            "Quentin\\TheArtbox\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Quentin Avrain",
+            "email": "quentin.avrain@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    }
+}
