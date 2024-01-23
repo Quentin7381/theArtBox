@@ -331,4 +331,73 @@ class OeuvresTest extends TestSetup{
         $this->assertEquals('image_6', $fetch[0]->url_image);
         $this->assertEquals('description_6', $fetch[0]->description);
     }
+
+    function test__to_array(){
+        $oeuvre = new Oeuvre();
+        $oeuvre->titre = 'titre_7';
+        $oeuvre->artiste = 'artiste_7';
+        $oeuvre->url_image = 'image_7';
+        $oeuvre->description = 'description_7';
+
+        $this->assertEquals([
+            'id' => null,
+            'titre' => 'titre_7',
+            'artiste' => 'artiste_7',
+            'url_image' => 'image_7',
+            'description' => 'description_7'
+        ], $oeuvre->to_array());
+    }
+
+    function test__to_array_multiple(){
+        $oeuvres = [
+            Oeuvre::from_array([
+                'titre' => 'titre_8',
+                'artiste' => 'artiste_8',
+                'url_image' => 'image_8',
+                'description' => 'description_8'
+            ]),
+            Oeuvre::from_array([
+                'titre' => 'titre_9',
+                'artiste' => 'artiste_9',
+                'url_image' => 'image_9',
+                'description' => 'description_9'
+            ]),
+            Oeuvre::from_array([
+                'titre' => 'titre_10',
+                'artiste' => 'artiste_10',
+                'url_image' => 'image_10',
+                'description' => 'description_10'
+            ])
+        ];
+
+        $this->assertEquals([
+            [
+                'id' => null,
+                'titre' => 'titre_8',
+                'artiste' => 'artiste_8',
+                'url_image' => 'image_8',
+                'description' => 'description_8'
+            ],
+            [
+                'id' => null,
+                'titre' => 'titre_9',
+                'artiste' => 'artiste_9',
+                'url_image' => 'image_9',
+                'description' => 'description_9'
+            ],
+            [
+                'id' => null,
+                'titre' => 'titre_10',
+                'artiste' => 'artiste_10',
+                'url_image' => 'image_10',
+                'description' => 'description_10'
+            ]
+        ], Oeuvre::to_array_multiple($oeuvres));
+
+        // Throw an exception if one of the objects is not an Oeuvre
+        $oeuvres[] = 'not an Oeuvre';
+        $this->expectExceptionMessage('In Oeuvre::to_array_multiple(): $instances must be an array of Oeuvre instances');
+
+        Oeuvre::to_array_multiple($oeuvres);
+    }
 }

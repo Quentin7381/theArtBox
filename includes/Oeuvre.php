@@ -288,4 +288,24 @@ class Oeuvre {
         ]);
         return true;
     }
+
+    public function to_array(){
+        return [
+            'id' => $this->id,
+            'titre' => $this->titre,
+            'artiste' => $this->artiste,
+            'url_image' => $this->url_image,
+            'description' => $this->description
+        ];
+    }
+
+    public static function to_array_multiple($instances){
+        $array = [];
+        foreach ($instances as $instance) {
+            if(!$instance instanceof static) throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): $instances must be an array of '.static::class.' instances');
+            if(!$instance->hydrated) $instance->hydrate();
+            $array[] = $instance->to_array();
+        }
+        return $array;
+    }
 }

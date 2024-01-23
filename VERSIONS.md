@@ -1,5 +1,9 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.0.7 Ajout methode to_array et to_array_multiple Oeuvre
+
+Ajout methode to_array et to_array_multiple a la classe Oeuvre pour obtenir un tableau associatif des champs de l'objet.
+
 ### Feat_BDD 0.0.6 Ajout methode save, insert et update Oeuvre
 
 La methode update choisir entre INSERT et UPDATE selon si l'objet est deja en base ou non.
