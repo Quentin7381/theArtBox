@@ -1,22 +1,24 @@
 <?php
     // Dependencies
-    require_once __DIR__.'/config/cfg.php';
-    require_once __DIR__.'/includes/oeuvres.php';
-    require_once __DIR__.'/includes/genFull.php';
-    $oeuvreId = $_GET['id'];
+    require_once __DIR__.'/config/Config.php';
+    $oeuvre = new Oeuvre();
+    $oeuvre->id = $_GET['id'];
+    $oeuvre->hydrate();
+
+    $templates = Templates::instance();
 ?>
 
 <!-- CONTENU PAGE -->
 
-<?php require __DIR__.'/includes/head.php'; ?>
+<?php require $templates->head ?>
 <body>
-    <?php require __DIR__.'/includes/header.php'; ?>
+    <?php require $templates->header ?>
     <main>
         <?php
-            echo genFull($oeuvres[$oeuvreId]);
+            require $templates->fullView;
         ?>
     </main>
-    <?php require __DIR__.'/includes/footer.php'; ?>
+    <?php require $templates->footer ?>
 </body>
 </html>
 

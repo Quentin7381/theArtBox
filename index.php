@@ -1,25 +1,29 @@
 <?php
     // Dependencies
-    require_once __DIR__.'/config/cfg.php';
-    require_once __DIR__.'/includes/oeuvres.php';
-    require_once __DIR__.'/includes/genPreview.php';
+    require_once __DIR__.'/config/Config.php';
+    $templates = Templates::instance();
+    $oeuvres = Oeuvre::fetch();
+    foreach($oeuvres as $oeuvre){
+        $oeuvre->hydrate();
+    }
+    
 ?>
 
 <!-- CONTENU PAGE -->
 
-<?php require __DIR__.'/includes/head.php'; ?>
+<?php require $templates->head ?>
 <body>
-    <?php require __DIR__.'/includes/header.php'; ?>
+    <?php require $templates->header ?>
     <main>
         <div id="liste-oeuvres">
             <?php
-                foreach($oeuvres as $key => $oeuvre) :
-                    echo genPreview($oeuvre);
+                foreach($oeuvres as $oeuvre) :
+                    require $templates->preview;
                 endforeach;
             ?>
         </div>
     </main>
-    <?php require __DIR__.'/includes/footer.php'; ?>
+    <?php require $templates->footer ?>
 </body>
 </html>
 

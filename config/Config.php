@@ -40,11 +40,12 @@ $cfg = Config::getInstance();
 $calledUrl = $_SERVER['REQUEST_URI'] ?? '';
 $regex = '/(^.*\/theArtbox\/)/';
 preg_match($regex, $calledUrl, $matches);
-$cfg->urlRoot = $matches[0] ?? '/';
+$cfg->url_root = $matches[0] ?? '/';
 
 $root = dirname(__DIR__);
-$root = str_replace($cfg->urlRoot, '', $root);
-$cfg->root = $root;
+$root = str_replace($cfg->url_root, '', $root);
+$cfg->path_root = $root;
+$cfg->path_templates = $cfg->path_root.'/templates/';
 
 $cfg->db_host = 'localhost';
 $cfg->db_user = 'root';
@@ -52,5 +53,7 @@ $cfg->db_pass = '';
 $cfg->db_name = 'theartbox';
 $cfg->db_throwExceptions = true;
 
-$cfg->autoload = $cfg->root.'/includes/Autoload.php';
+$cfg->autoload = $cfg->path_root.'/includes/Autoload.php';
 require_once $cfg->autoload;
+
+$db = BDD::getInstance();

@@ -16,8 +16,7 @@ class Autoload {
 
     public function autoload($className) {
         $cfg = Config::getInstance();
-        $path = $cfg->root . '/includes/' . $className . '.php';
-        var_dump($path);
+        $path = $cfg->path_root . '/includes/' . $className . '.php';
         if (file_exists($path)) {
             require_once $path;
         }

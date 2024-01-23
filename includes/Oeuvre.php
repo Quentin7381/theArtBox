@@ -12,10 +12,14 @@ class Oeuvre {
         'url_image',
         'description'
     ];
-
+    static protected $columns_mutators = [
+        'link',
+        'image',
+    ];
     protected $id;
     protected $titre;
     protected $artiste;
+    protected $url_image;
     protected $image;
     protected $link;
     protected $description;
@@ -46,6 +50,32 @@ class Oeuvre {
     public function get_column($key){
         if($this->$key === null && !$this->hydrated) $this->hydrate();
         return $this->$key;
+    }
+
+    public function get_link(){
+        if($this->id === null) return null;
+        return Config::getInstance()->url_root.'view/?id='.$this->id;
+    }
+
+    public function get_image(){
+        if($this->url_image === null) $this->hydrate();
+        if($this->url_image === null) return null;
+        return Config::getInstance()->url_root.'img/'.$this->url_image;
+    }
+
+    public function get_title(){
+        if($this->titre === null) return 'Sans titre';
+        return $this->titre;
+    }
+
+    public function get_artist(){
+        if($this->artiste === null) return 'Anonyme';
+        return $this->artiste;
+    }
+
+    public function get_description(){
+        if($this->description === null) return 'Sans description';
+        return $this->description;
     }
 
     public function __set($key, $value) {

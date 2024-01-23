@@ -1,5 +1,12 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.1.0 Implemetation de la classe Oeuvre dans le site
+
+Ajout de la classe Oeuvre dans le site.
+Ajout d'une classe Template pour acceder plus facilement aux templates.
+Reorganisation des fichiers du site.
+Suppression du dossier 'old'
+
 ### Feat_BDD 0.0.7 Ajout methode to_array et to_array_multiple Oeuvre
 
 Ajout methode to_array et to_array_multiple a la classe Oeuvre pour obtenir un tableau associatif des champs de l'objet.

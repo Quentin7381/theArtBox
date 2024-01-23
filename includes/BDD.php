@@ -18,5 +18,4 @@ class BDD extends PDO {
         }
         return self::$instance;
     }
-   
 }
