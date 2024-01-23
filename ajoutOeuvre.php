@@ -1,6 +1,7 @@
 <?php
     // Dependencies
-    require_once __DIR__.'/config/cfg.php';
+    require_once __DIR__.'/config/Config.php';
+    $bdd = new BDD();
 ?>
 
 <!-- CONTENU PAGE -->

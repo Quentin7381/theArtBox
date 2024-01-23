@@ -1,5 +1,13 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.0.4 Objets BDD & Oeuvre
+
+Ajout classe BDD avec connexion auto PDO
+Ajout classe Oeuvre avec methodes new et fetch
+Ajout tests Oeuvre
+Modification config pour permettre overrides en tests
+Ajout Autoload pour classes includes/*
+
 ### Feat_BDD 0.0.3 Ajout du setup de tests phpunit
 
 Ajout des librairies phpunit via composer
