@@ -5,20 +5,19 @@ require_once __DIR__.'/TestSetup.php';
 class OeuvresTest extends TestSetup{
 
     function test__construct(){
-        $oeuvre = new Oeuvre('titre', 'artiste', 'image', 'link', 'description');
+        $oeuvre = new Oeuvre('titre', 'artiste', 'url_image', 'description');
         
         // Result object is the expected one
         $this->assertEquals('titre', $oeuvre->titre);
         $this->assertEquals('artiste', $oeuvre->artiste);
-        $this->assertEquals('image', $oeuvre->image);
-        $this->assertEquals('link', $oeuvre->link);
+        $this->assertEquals('url_image', $oeuvre->url_image);
         $this->assertEquals('description', $oeuvre->description);
 
         // Constructor sets to null by default
         $oeuvre = new Oeuvre();
         $this->assertEquals(null, $oeuvre->titre);
         $this->assertEquals(null, $oeuvre->artiste);
-        $this->assertEquals(null, $oeuvre->image);
+        $this->assertEquals(null, $oeuvre->url_image);
         $this->assertEquals(null, $oeuvre->link);
         $this->assertEquals(null, $oeuvre->description);
     }
@@ -27,16 +26,14 @@ class OeuvresTest extends TestSetup{
         $oeuvre = Oeuvre::from_array([
             'titre' => 'titre',
             'artiste' => 'artiste',
-            'image' => 'image',
-            'link' => 'link',
+            'url_image' => 'url_image',
             'description' => 'description'
         ]);
         
         // Result object is the expected one
         $this->assertEquals('titre', $oeuvre->titre);
         $this->assertEquals('artiste', $oeuvre->artiste);
-        $this->assertEquals('image', $oeuvre->image);
-        $this->assertEquals('link', $oeuvre->link);
+        $this->assertEquals('url_image', $oeuvre->url_image);
         $this->assertEquals('description', $oeuvre->description);
     }
 
@@ -101,7 +98,7 @@ class OeuvresTest extends TestSetup{
             'id' => 1,
             'titre' => 'Bla',
             'artiste' => 'Bla',
-            'image' => 'Bla',
+            'url_image' => 'Bla',
             'link' => 'Bla',
             'description' => 'Bla'
         ];
@@ -119,7 +116,7 @@ class OeuvresTest extends TestSetup{
                 'value' => 'Bla',
                 'operator' => '='
             ],
-            'image' => [
+            'url_image' => [
                 'value' => 'Bla',
                 'operator' => '='
             ],
@@ -138,7 +135,7 @@ class OeuvresTest extends TestSetup{
             'id' => [1, 2, 3],
             'titre' => ['Bla', 'Bla', 'Bla'],
             'artiste' => ['Bla', 'Bla', 'Bla'],
-            'image' => ['Bla', 'Bla', 'Bla'],
+            'url_image' => ['Bla', 'Bla', 'Bla'],
             'link' => ['Bla', 'Bla', 'Bla'],
             'description' => ['Bla', 'Bla', 'Bla']
         ];
@@ -156,7 +153,7 @@ class OeuvresTest extends TestSetup{
                 'value' => ['Bla', 'Bla', 'Bla'],
                 'operator' => 'IN'
             ],
-            'image' => [
+            'url_image' => [
                 'value' => ['Bla', 'Bla', 'Bla'],
                 'operator' => 'IN'
             ],
@@ -184,7 +181,7 @@ class OeuvresTest extends TestSetup{
                 'value' => 1,
                 'operator' => '='
             ],
-            'image' => [
+            'url_image' => [
                 'value' => 2,
                 'operator' => '>='
             ],
@@ -211,7 +208,7 @@ class OeuvresTest extends TestSetup{
                 'value' => 1,
                 'operator' => '='
             ],
-            'image' => [
+            'url_image' => [
                 'value' => 2,
                 'operator' => '>='
             ],
@@ -224,5 +221,54 @@ class OeuvresTest extends TestSetup{
                 'operator' => 'LIKE'
             ]
         ], $filters);
+    }
+
+    function test__set(){
+        // Setting properties that are not collumns or do not implement a setter will fail
+
+        $oeuvre = new Oeuvre();
+        @$oeuvre->hydrated = true;
+        $this->assertEquals(false, $oeuvre->hydrated);
+
+        @$oeuvre->not_a_column = true;
+        $this->assertEquals(null, @$oeuvre->not_a_column);
+    }
+
+    function test__hydrate(){
+        // Getting an existing id
+        $oeuvre = Oeuvre::fetch([], ['limit' => 1])[0];
+        $id = $oeuvre->id;
+
+        // Hydrating will fill the object with data from the database
+        $oeuvre = new Oeuvre();
+        $oeuvre->id = $id;
+        $oeuvre->hydrate();
+
+        $this->assertEquals('titre_1', $oeuvre->titre);
+        $this->assertEquals('artiste_1', $oeuvre->artiste);
+        $this->assertEquals('image_1', $oeuvre->url_image);
+        $this->assertEquals('description_1', $oeuvre->description);
+
+        // Hydrating an already hydrated object will do nothing
+        $oeuvre->titre = 'titre_2';
+        $oeuvre->hydrate();
+
+        $this->assertEquals('titre_2', $oeuvre->titre);
+
+        // Hydrated object will keep their values if already set
+        $oeuvre = new Oeuvre();
+        $oeuvre->id = $id;
+        $oeuvre->titre = 'titre_3';
+        $oeuvre->hydrate();
+
+        $this->assertEquals('titre_3', $oeuvre->titre);
+
+        // Hydrating an object with an invalid id will do nothing
+        $oeuvre = new Oeuvre();
+        $oeuvre->titre = 'titre_3';
+        $oeuvre->id = -1;
+        $oeuvre->hydrate();
+
+        $this->assertEquals('titre_3', $oeuvre->titre);
     }
 }

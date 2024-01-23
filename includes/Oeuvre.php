@@ -5,6 +5,13 @@ class Oeuvre {
     static protected $instances = [];
     static protected $table = 'oeuvres';
     static protected $bdd = null;
+    static protected $columns = [
+        'id',
+        'titre',
+        'artiste',
+        'url_image',
+        'description'
+    ];
 
     protected $id;
     protected $titre;
@@ -12,14 +19,14 @@ class Oeuvre {
     protected $image;
     protected $link;
     protected $description;
+    protected $hydrated = false;
 
-    public function __construct($titre = null, $artiste = null, $image = null, $link = null, $description = null) {
+    public function __construct($titre = null, $artiste = null, $url_image = null, $description = null) {
         if(!self::$bdd) self::$bdd = BDD::getInstance();
         $this->__set('titre', $titre);
         $this->__set('artiste', $artiste);
-        $this->__set('image', $image);
-        $this->__set('link', $link);
-        $this-> __set('description', $description);
+        $this->__set('url_image', $url_image);
+        $this->__set('description', $description);
     }
 
     public static function from_array($array){
@@ -32,11 +39,24 @@ class Oeuvre {
 
     public function __get($key) {
         if(method_exists($this, 'get_'.$key)) return $this->{'get_'.$key}();
+        if(in_array($key, self::$columns)) return $this->get_column($key);
+        return $this->$key;
+    }
+
+    public function get_column($key){
+        if($this->$key === null && !$this->hydrated) $this->hydrate();
         return $this->$key;
     }
 
     public function __set($key, $value) {
         if(method_exists($this, 'set_'.$key)) return $this->{'set_'.$key}($value);
+        if(in_array($key, self::$columns)) return $this->set_column($key, $value);
+
+        user_error('In '.__CLASS__.'::'.__FUNCTION__.'(): "' . $key . '" is read-only or undefined. Define a setter for '.$key.' or add it to the list of columns');
+        return false;
+    }
+
+    public function set_column($key, $value){
         $this->$key = $value;
     }
 
@@ -51,7 +71,7 @@ class Oeuvre {
      *     'id' => 1,
      *     'titre' => 'Bla',
      *     'artiste' => 'Bla',
-     *     'image' => 'Bla',
+     *     'url_image' => 'Bla',
      *     'link' => 'Bla',
      *     'description' => 'Bla'
      * ]
@@ -61,7 +81,7 @@ class Oeuvre {
      *     'id' => [1, 2, 3],
      *     'titre' => ['Bla', 'Bla', 'Bla'],
      *     'artiste' => ['Bla', 'Bla', 'Bla'],
-     *     'image' => ['Bla', 'Bla', 'Bla'],
+     *     'url_image' => ['Bla', 'Bla', 'Bla'],
      *     'link' => ['Bla', 'Bla', 'Bla'],
      *     'description' => ['Bla', 'Bla', 'Bla']
      * ]
@@ -80,7 +100,7 @@ class Oeuvre {
      *         'value' => ['Bla', 'Bla', 'Bla'],
      *         'operator' => 'IN'
      *     ],
-     *     'image' => [
+     *     'url_image' => [
      *         'value' => ['Bla', 'Bla', 'Bla'],
      *         'operator' => 'IN'
      *     ],
@@ -102,7 +122,7 @@ class Oeuvre {
                 'id' => 1,
                 'titre' => 'Bla',
                 'artiste' => 'Bla',
-                'image' => 'Bla',
+                'url_image' => 'Bla',
                 'link' => 'Bla',
                 'description' => 'Bla'
             ]
@@ -111,7 +131,7 @@ class Oeuvre {
                 'id' => [1, 2, 3],
                 'titre' => ['Bla', 'Bla', 'Bla'],
                 'artiste' => ['Bla', 'Bla', 'Bla'],
-                'image' => ['Bla', 'Bla', 'Bla'],
+                'url_image' => ['Bla', 'Bla', 'Bla'],
                 'link' => ['Bla', 'Bla', 'Bla'],
                 'description' => ['Bla', 'Bla', 'Bla']
             ]
@@ -129,7 +149,7 @@ class Oeuvre {
                     'value' => ['Bla', 'Bla', 'Bla'],
                     'operator' => 'IN'
                 ],
-                'image' => [
+                'url_image' => [
                     'value' => ['Bla', 'Bla', 'Bla'],
                     'operator' => 'IN'
                 ],
@@ -149,7 +169,7 @@ class Oeuvre {
         // Ajout des filtres
         $filters = self::uniformizeFilters($filters);
 
-        $sql = 'SELECT * FROM '.self::$table;
+        $sql = 'SELECT id FROM '.self::$table;
         $sql .= ' WHERE 1';
         $params = [];
         foreach ($filters as $key => $filter) {
@@ -179,7 +199,7 @@ class Oeuvre {
         // Création des instances
         $instances = [];
         foreach ($results as $result) {
-            $instance = new Oeuvre($result['titre'], $result['artiste'], $result['url_image'], $result['description']);
+            $instance = new Oeuvre();
             $instance->id = $result['id'];
             $instances[] = $instance;
         }
@@ -217,5 +237,23 @@ class Oeuvre {
             ];
         }
         return $uniformizedFilters;
+    }
+
+    public function hydrate(){
+        if($this->id === null) return false;
+        if($this->hydrated) return true;
+
+        $stmt = self::$bdd->prepare('SELECT * FROM '.self::$table.' WHERE id = :id');
+        $stmt->execute(['id' => $this->id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if(!empty($result))
+        foreach ($result as $key => $value) {
+            if($this->$key === null) $this->$key = $value;
+        }
+
+        $this->hydrated = true;
+
+        return true;
     }
 }

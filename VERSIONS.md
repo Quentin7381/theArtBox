@@ -1,5 +1,13 @@
 # Versions du projet theArtbox
 
+
+
+### Feat_BDD 0.0.5 Ajout methode hydrate Oeuvre
+
+Ajout methode hydrate a la classe Oeuvre.
+Oeuvres retournees par fetch ne plus plus hydratees.
+Tenter de lire un champ null d'un objet non hydrate hydrate l'objet (si l'id est defini).
+
 ### Feat_BDD 0.0.4 Objets BDD & Oeuvre
 
 Ajout classe BDD avec connexion auto PDO
