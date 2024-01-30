@@ -1,5 +1,11 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.2.1 Ajout js UX admin
+
+Confirmation de suppression / edition / ajout d'oeuvre
+Affichage dynamique des images importees
+Modification class Template pour permettre l'ajout de scripts (via nommage js_SCRIPTNAME)
+
 ### Feat_BDD 0.2.0 Ajout formulaire d'ajout / edition / suppression d'oeuvre
 
 Ajout formulaire d'ajout / edition / suppression d'oeuvre

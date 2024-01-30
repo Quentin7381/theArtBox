@@ -38,6 +38,7 @@
 <?php require $templates->head ?>
 <body>
     <?php require $templates->header ?>
+    <?php require $templates->confirmPopup ?>
 
     <h3>Filter :</h3>
     <?php require $templates->form_search ?>
@@ -76,6 +77,8 @@
         ?>
     </div>
 </body>
-
-
 <?php require $templates->footer ?>
+
+<script defer>
+    <?php require $templates->js_admin ?>
+</script>

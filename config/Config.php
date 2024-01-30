@@ -46,6 +46,7 @@ $root = dirname(__DIR__);
 $root = str_replace($cfg->url_root, '', $root);
 $cfg->path_root = $root;
 $cfg->path_templates = $cfg->path_root.'/templates/';
+$cfg->path_js = $cfg->path_root.'/js/';
 
 $cfg->db_host = 'localhost';
 $cfg->db_user = 'root';

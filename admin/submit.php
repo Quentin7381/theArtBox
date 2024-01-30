@@ -47,7 +47,7 @@ switch($_POST['action']){
         $oeuvre->description = $_POST['description'];
         $oeuvre->url_image = saveImage($_FILES['image']);
         $oeuvre->save();
-        header('Location: '.$cfg->url_root.'/admin/index.php');
+        header('Location: '.$cfg->url_root.'admin/?action=update');
         exit;
     case 'add' :
         $oeuvre = new Oeuvre();
@@ -56,12 +56,12 @@ switch($_POST['action']){
         $oeuvre->description = $_POST['description'];
         $oeuvre->url_image = saveImage($_FILES['image']);
         $oeuvre->save();
-        header('Location: '.$cfg->url_root.'/admin/index.php');
+        header('Location: '.$cfg->url_root.'admin/?action=add');
         exit;
     case 'delete' :
         $oeuvre = Oeuvre::fetch(['id' => $_POST['id']]);
         $oeuvre = $oeuvre[0];
         $oeuvre->delete();
-        header('Location: '.$cfg->url_root.'/admin/index.php');
+        header('Location: '.$cfg->url_root.'admin/?action=delete');
         exit;
 }
