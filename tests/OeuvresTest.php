@@ -3,23 +3,141 @@
 require_once __DIR__.'/TestSetup.php';
 
 class OeuvresTest extends TestSetup{
+    static protected $className = 'Oeuvre';
+    protected $BDD = null;
+    protected $Oeuvre = null;
+    protected $lastSql = null;
+    protected $stmtMock = null;
+
+    function setUp():void{
+        parent::setUp();
+
+        // Setup the BDD mock in the Oeuvre class
+        $this->stmtMock = $this->createMock(PDOStatement::class);
+        $this->BDD->method('prepare')->willReturn($this->stmtMock);
+        $this->stmtMock->method('execute')->willReturn(true);
+        $this->stmtMock->method('fetchAll')->willReturn([]);
+        $this->Oeuvre['properties']['bdd']->setValue(null, $this->BDD);
+
+        // Listen to the last SQL query
+        $this->BDD->expects($this->any())
+            ->method('prepare')
+            ->with($this->callback(function($sql){
+                $this->lastSql = $sql;
+                return true;
+            }));
+    }
 
     function test__construct(){
+        // ----- POSITIONAL ARGUMENTS -----
+        // Full constructor
         $oeuvre = new Oeuvre('titre', 'artiste', 'url_image', 'description');
         
-        // Result object is the expected one
-        $this->assertEquals('titre', $oeuvre->titre);
-        $this->assertEquals('artiste', $oeuvre->artiste);
-        $this->assertEquals('url_image', $oeuvre->url_image);
-        $this->assertEquals('description', $oeuvre->description);
+        // Properties are filled
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals('url_image', $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals('description', $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
 
-        // Constructor sets to null by default
+        // Partial constructor
+        $oeuvre = new Oeuvre('titre', 'artiste');
+
+        // Properties are filled and others are null
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // No arguments
         $oeuvre = new Oeuvre();
-        $this->assertEquals(null, $oeuvre->titre);
-        $this->assertEquals(null, $oeuvre->artiste);
-        $this->assertEquals(null, $oeuvre->url_image);
-        $this->assertEquals(null, $oeuvre->link);
-        $this->assertEquals(null, $oeuvre->description);
+
+        // Properties are null
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // ----- ASSOCIATIVE ARRAY -----
+        // Full constructor
+        $oeuvre = new Oeuvre([
+            'titre' => 'titre',
+            'artiste' => 'artiste',
+            'url_image' => 'url_image',
+            'description' => 'description'
+        ]);
+
+        // Properties are filled
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals('url_image', $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals('description', $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // Partial constructor
+        $oeuvre = new Oeuvre([
+            'titre' => 'titre',
+            'artiste' => 'artiste'
+        ]);
+
+        // Properties are filled and others are null
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // No arguments
+        $oeuvre = new Oeuvre([]);
+
+        // Properties are null
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // ----- OBJECT -----
+        // Full constructor
+        $oeuvre = new StdClass();
+        $oeuvre->titre = 'titre';
+        $oeuvre->artiste = 'artiste';
+        $oeuvre->url_image = 'url_image';
+        $oeuvre->description = 'description';
+
+        $oeuvre = new Oeuvre($oeuvre);
+
+        // Properties are filled
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals('url_image', $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals('description', $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // Partial constructor
+        $oeuvre = new StdClass();
+        $oeuvre->titre = 'titre';
+        $oeuvre->artiste = 'artiste';
+
+        $oeuvre = new Oeuvre($oeuvre);
+
+        // Properties are filled and others are null
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
+
+        // No arguments
+        $oeuvre = new StdClass();
+
+        $oeuvre = new Oeuvre($oeuvre);
+
+        // Properties are null
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals(null, $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);        
+
+        // ----- INVALID ARGUMENTS -----
+        // Too many arguments
+        $this->expectExceptionMessage('In Oeuvre::__construct(): Invalid arguments. Arguments can be an associative array, an object, or positional arguments (titre, artiste, url_image, description, id)');
+
+        $oeuvre = new Oeuvre('titre', 'artiste', 'url_image', 'description', 'id', 'too much');
     }
 
     function test__fromArray(){
@@ -31,305 +149,247 @@ class OeuvresTest extends TestSetup{
         ]);
         
         // Result object is the expected one
-        $this->assertEquals('titre', $oeuvre->titre);
-        $this->assertEquals('artiste', $oeuvre->artiste);
-        $this->assertEquals('url_image', $oeuvre->url_image);
-        $this->assertEquals('description', $oeuvre->description);
+        $this->assertEquals('titre', $this->Oeuvre['properties']['values']->getValue($oeuvre)['titre']);
+        $this->assertEquals('artiste', $this->Oeuvre['properties']['values']->getValue($oeuvre)['artiste']);
+        $this->assertEquals('url_image', $this->Oeuvre['properties']['values']->getValue($oeuvre)['url_image']);
+        $this->assertEquals('description', $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
     }
 
     function test__fetch(){
-        // Empty fetch would fetch all entries
-        $oeuvres = Oeuvre::fetch();
-        $this->assertEquals(3, count($oeuvres));
         
-        // Fetch with filters
-        $oeuvres = Oeuvre::fetch([
-            'titre' => 'titre_1'
+        // No arguments
+        Oeuvre::fetch();
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1',
+            $this->lastSql
+        );
+
+        // Filters
+        Oeuvre::fetch([
+            'titre' => 'titre',
+            'artiste' => 'artiste',
+            'url_image' => 'url_image',
+            'description' => 'description'
         ]);
-        $this->assertEquals(1, count($oeuvres));
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+                'AND titre = (:param_titre_0) '.
+                'AND artiste = (:param_artiste_0) '.
+                'AND url_image = (:param_url_image_0) '.
+                'AND description = (:param_description_0)', 
+            $this->lastSql
+        );
 
-        $oeuvres = Oeuvre::fetch([
-            'artiste' => 'artiste_1'
+        // Filters with operators
+        Oeuvre::fetch([
+            'titre' => [
+                'value' => 'titre',
+                'operator' => '!='
+            ],
+            'artiste' => [
+                'value' => 'artiste',
+                'operator' => 'LIKE'
+            ],
+            'url_image' => [
+                'value' => 'url_image',
+                'operator' => 'NOT LIKE'
+            ],
+            'description' => [
+                'value' => 'description',
+                'operator' => '='
+            ],
+            'id' => [
+                'value' => 1,
+                'operator' => '>'
+            ]
         ]);
-        $this->assertEquals(2, count($oeuvres));
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+                'AND titre != (:param_titre_0) '.
+                'AND artiste LIKE (:param_artiste_0) '.
+                'AND url_image NOT LIKE (:param_url_image_0) '.
+                'AND description = (:param_description_0) '.
+                'AND id > (:param_id_0)', 
+            $this->lastSql
+        );
 
-        $oeuvres = Oeuvre::fetch([
-            'titre' => 'titre_3',
-            'artiste' => 'artiste_1'
+        // Filters with multiple values
+        Oeuvre::fetch([
+            'titre' => ['titre_1', 'titre_2', 'titre_3']
         ]);
-        $this->assertEquals(1, count($oeuvres));
-        $this->assertEquals('titre_3', $oeuvres[0]->titre);
-
-        // Fetch with options
-
-        // order_by
-        $oeuvres = Oeuvre::fetch([], [
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+                'AND titre IN (:param_titre_0, :param_titre_1, :param_titre_2)', 
+            $this->lastSql
+        );
+        
+        // ----- OPTIONS -----
+        // Order by
+        Oeuvre::fetch([], [
             'order_by' => 'titre'
         ]);
-        $this->assertEquals('titre_1', $oeuvres[0]->titre);
-        $this->assertEquals('titre_2', $oeuvres[1]->titre);
 
-        // order
-        $oeuvres = Oeuvre::fetch([], [
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+            'ORDER BY titre', 
+            $this->lastSql
+        );
+
+        // Order by & order
+        Oeuvre::fetch([], [
             'order_by' => 'titre',
             'order' => 'DESC'
         ]);
-        $this->assertEquals('titre_3', $oeuvres[0]->titre);
-        $this->assertEquals('titre_2', $oeuvres[1]->titre);
 
-        // limit
-        $oeuvres = Oeuvre::fetch([], [
-            'limit' => 1
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+            'ORDER BY titre DESC', 
+            $this->lastSql
+        );
+
+        // Limit
+        Oeuvre::fetch([], [
+            'limit' => 10
         ]);
-        $this->assertEquals(1, count($oeuvres));
 
-        // offset
-        $oeuvres = Oeuvre::fetch([], [
-            'limit' => 1,
-            'offset' => 1
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+            'LIMIT 10', 
+            $this->lastSql
+        );
+
+        // Offset
+        Oeuvre::fetch([], [
+            'offset' => 10
         ]);
-        $this->assertEquals(1, count($oeuvres));
-        $this->assertEquals('titre_2', $oeuvres[0]->titre);
-    }
 
-    function test__uniformizeFilters(){
-        // Using simple values
-        $filters = [
-            'id' => 1,
-            'titre' => 'Bla',
-            'artiste' => 'Bla',
-            'url_image' => 'Bla',
-            'link' => 'Bla',
-            'description' => 'Bla'
-        ];
-        $filters = Oeuvre::uniformizeFilters($filters);
-        $this->assertEquals([
-            'id' => [
-                'value' => 1,
-                'operator' => '='
-            ],
-            'titre' => [
-                'value' => 'Bla',
-                'operator' => '='
-            ],
-            'artiste' => [
-                'value' => 'Bla',
-                'operator' => '='
-            ],
-            'url_image' => [
-                'value' => 'Bla',
-                'operator' => '='
-            ],
-            'link' => [
-                'value' => 'Bla',
-                'operator' => '='
-            ],
-            'description' => [
-                'value' => 'Bla',
-                'operator' => '='
-            ]
-        ], $filters);
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE 1 '.
+            'OFFSET 10', 
+            $this->lastSql
+        );
 
-        // Using arrays of values
-        $filters = [
-            'id' => [1, 2, 3],
-            'titre' => ['Bla', 'Bla', 'Bla'],
-            'artiste' => ['Bla', 'Bla', 'Bla'],
-            'url_image' => ['Bla', 'Bla', 'Bla'],
-            'link' => ['Bla', 'Bla', 'Bla'],
-            'description' => ['Bla', 'Bla', 'Bla']
-        ];
-        $filters = Oeuvre::uniformizeFilters($filters);
-        $this->assertEquals([
-            'id' => [
-                'value' => [1, 2, 3],
-                'operator' => 'IN'
-            ],
-            'titre' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'artiste' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'url_image' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'link' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'description' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ]
-        ], $filters);
+        // -- Select --
+        // count
+        $this->stmtMock
+            ->method('fetchAll')
+            ->willReturn([
+                ['COUNT(*)' => 10]
+        ]);
+        $result = Oeuvre::fetch([], [
+            'select' => 'COUNT'
+        ]);
+        $this->assertEquals(
+            'SELECT COUNT(*) '.
+            'FROM oeuvres '.
+            'WHERE 1', 
+            $this->lastSql
+        );
+        $this->assertEquals(10, $result);
 
-        // Using complex structure with value and operator
-        $filters = [
-            'id' => [
-                'value' => [1, 2, 3],
-                'operator' => 'NOT IN'
-            ],
-            'titre' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'artiste' => [
-                'value' => 1,
-                'operator' => '='
-            ],
-            'url_image' => [
-                'value' => 2,
-                'operator' => '>='
-            ],
-            'link' => [
-                'value' => 3,
-                'operator' => '<='
-            ],
-            'description' => [
-                'value' => 'baggels',
-                'operator' => 'LIKE'
-            ]
-        ];
-        $filters = Oeuvre::uniformizeFilters($filters);
-        $this->assertEquals([
-            'id' => [
-                'value' => [1, 2, 3],
-                'operator' => 'NOT IN'
-            ],
-            'titre' => [
-                'value' => ['Bla', 'Bla', 'Bla'],
-                'operator' => 'IN'
-            ],
-            'artiste' => [
-                'value' => 1,
-                'operator' => '='
-            ],
-            'url_image' => [
-                'value' => 2,
-                'operator' => '>='
-            ],
-            'link' => [
-                'value' => 3,
-                'operator' => '<='
-            ],
-            'description' => [
-                'value' => 'baggels',
-                'operator' => 'LIKE'
-            ]
-        ], $filters);
-    }
+        // column name
+        Oeuvre::fetch([], [
+            'select' => 'titre'
+        ]);
+        $this->assertEquals(
+            'SELECT titre '.
+            'FROM oeuvres '.
+            'WHERE 1', 
+            $this->lastSql
+        );
 
-    function test__set(){
-        // Setting properties that are not collumns or do not implement a setter will fail
+        // multiple columns
+        Oeuvre::fetch([], [
+            'select' => ['titre', 'artiste']
+        ]);
 
-        $oeuvre = new Oeuvre();
-        @$oeuvre->hydrated = true;
-        $this->assertEquals(false, $oeuvre->hydrated);
+        $this->assertEquals(
+            'SELECT titre, artiste '.
+            'FROM oeuvres '.
+            'WHERE 1', 
+            $this->lastSql
+        );
 
-        @$oeuvre->not_a_column = true;
-        $this->assertEquals(null, @$oeuvre->not_a_column);
+        // invalid column name
+        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument. $options[\'select\']. String value must match a column names (titre, artiste, url_image, description, id) or implemented functions (COUNT)');
+        Oeuvre::fetch([], [
+            'select' => 'invalid'
+        ]);
+
+        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument. $options[\'select\']. Array values must match column names (titre, artiste, url_image, description, id)');
+        Oeuvre::fetch([], [
+            'select' => ['titre', 'invalid']
+        ]);
     }
 
     function test__hydrate(){
-        // Getting an existing id
-        $oeuvre = Oeuvre::fetch([], ['limit' => 1])[0];
-        $id = $oeuvre->id;
-
-        // Hydrating will fill the object with data from the database
-        $oeuvre = new Oeuvre();
-        $oeuvre->id = $id;
+        $oeuvre = new Oeuvre(['id' => 99]);
         $oeuvre->hydrate();
 
-        $this->assertEquals('titre_1', $oeuvre->titre);
-        $this->assertEquals('artiste_1', $oeuvre->artiste);
-        $this->assertEquals('image_1', $oeuvre->url_image);
-        $this->assertEquals('description_1', $oeuvre->description);
+        $this->stmtMock->expects($this->any())
+            ->method('fetch')
+            ->willReturn([
+                'titre' => 'titre',
+                'artiste' => 'artiste',
+                'url_image' => 'url_image',
+                'description' => 'description'
+            ]);
 
-        // Hydrating an already hydrated object will do nothing
-        $oeuvre->titre = 'titre_2';
-        $oeuvre->hydrate();
-
-        $this->assertEquals('titre_2', $oeuvre->titre);
-
-        // Hydrated object will keep their values if already set
-        $oeuvre = new Oeuvre();
-        $oeuvre->id = $id;
-        $oeuvre->titre = 'titre_3';
-        $oeuvre->hydrate();
-
-        $this->assertEquals('titre_3', $oeuvre->titre);
-
-        // Hydrating an object with an invalid id will do nothing
-        $oeuvre = new Oeuvre();
-        $oeuvre->titre = 'titre_3';
-        $oeuvre->id = -1;
-        $oeuvre->hydrate();
-
-        $this->assertEquals('titre_3', $oeuvre->titre);
+        $this->assertEquals(
+            'SELECT * '.
+            'FROM oeuvres '.
+            'WHERE id = :id',
+            $this->lastSql
+        );
     }
 
     function test__save(){
-        // save sans id effecture un insert et ajoute un l'id
-        $oeuvre = new Oeuvre();
-        $oeuvre->titre = 'titre_4';
-        $oeuvre->artiste = 'artiste_4';
-        $oeuvre->url_image = 'image_4';
-        $oeuvre->description = 'description_4';
-        $oeuvre->save();
+        $this->BDD->method('lastInsertId')->willReturn(22);
 
-        $this->assertNotNull($oeuvre->id);
-
-        $fetch = Oeuvre::fetch([
-            'id' => $oeuvre->id
-        ]);
-        $this->assertEquals(1, count($fetch));
-        $this->assertEquals('titre_4', $fetch[0]->titre);
-        $this->assertEquals('artiste_4', $fetch[0]->artiste);
-        $this->assertEquals('image_4', $fetch[0]->url_image);
-        $this->assertEquals('description_4', $fetch[0]->description);
-
-        // save avec id effectue un update
-        $existingID = Oeuvre::fetch([], ['limit' => 1])[0]->id;
-        $oeuvre = new Oeuvre();
-        $oeuvre->titre = 'titre_5';
-        $oeuvre->id = $existingID;
-
-        $oeuvre->save();
-
-        $fetch = Oeuvre::fetch([
-            'id' => $existingID
-        ]);
-        $this->assertEquals(1, count($fetch));
-        $this->assertEquals('titre_5', $fetch[0]->titre);
-        $this->assertEquals('artiste_1', $fetch[0]->artiste);
-        $this->assertEquals('image_1', $fetch[0]->url_image);
-        $this->assertEquals('description_1', $fetch[0]->description);
-
-        // save avec id inexistant effectue un insert
-        $oeuvre = new Oeuvre();
-        $oeuvre->titre = 'titre_6';
-        $oeuvre->artiste = 'artiste_6';
-        $oeuvre->url_image = 'image_6';
-        $oeuvre->description = 'description_6';
-        $oeuvre->id = -1;
-
-        $oeuvre->save();
-
-        $this->assertNotNull($oeuvre->id);
-
-        $fetch = Oeuvre::fetch([
-            'id' => $oeuvre->id
+        $oeuvre = new Oeuvre([
+            'titre' => 'titre',
+            'artiste' => 'artiste',
+            'url_image' => 'url_image',
+            'description' => 'description'
         ]);
 
-        $this->assertEquals(1, count($fetch));
-        $this->assertEquals('titre_6', $fetch[0]->titre);
-        $this->assertEquals('artiste_6', $fetch[0]->artiste);
-        $this->assertEquals('image_6', $fetch[0]->url_image);
-        $this->assertEquals('description_6', $fetch[0]->description);
+        // Insert
+        $oeuvre->save();
+
+        $this->assertEquals(
+            'INSERT INTO oeuvres (titre, artiste, url_image, description) '.
+            'VALUES (:titre, :artiste, :url_image, :description)',
+            $this->lastSql
+        );
+
+        $this->assertEquals(22, $oeuvre->id);
+
+        // Update
+        $oeuvre->id = 99;
+        $oeuvre->save();
+
+        $this->assertEquals(
+            'UPDATE oeuvres '.
+            'SET titre = :titre, artiste = :artiste, url_image = :url_image, description = :description '.
+            'WHERE id = :id',
+            $this->lastSql
+        );
     }
 
     function test__to_array(){

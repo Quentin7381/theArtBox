@@ -15,69 +15,71 @@ class Oeuvre {
         'link',
         'image',
     ];
-    protected $id;
-    protected $titre;
-    protected $artiste;
-    protected $url_image;
-    protected $image;
-    protected $link;
-    protected $description;
+
+    static protected $lastQuery = null;
+    protected $values = [];
     protected $hydrated = false;
 
-    public function __construct($titre = null, $artiste = null, $url_image = null, $description = null) {
+    public function __construct(...$args) {
         if(!self::$bdd) self::$bdd = BDD::getInstance();
-        $this->__set('titre', $titre);
-        $this->__set('artiste', $artiste);
-        $this->__set('url_image', $url_image);
-        $this->__set('description', $description);
+
+        if(count($args) === 1 && is_array($args[0])) {
+            foreach(self::$columns as $key){
+                $this->values[$key] = $args[0][$key] ?? null;
+            }
+        }
+
+        else if(count($args) === 1 && is_object($args[0])) {
+            $this->values['id'] = $args[0]->id ?? null;
+            $this->set('titre', $args[0]->titre ?? null);
+            $this->set('artiste', $args[0]->artiste ?? null);
+            $this->set('url_image', $args[0]->url_image ?? null);
+            $this->set('description', $args[0]->description ?? null);
+        }
+
+        else if(count($args) < 6){
+            $this->set('titre', $args[0] ?? null);
+            $this->set('artiste', $args[1] ?? null);
+            $this->set('url_image', $args[2] ?? null);
+            $this->set('description', $args[3] ?? null);
+            $this->set('id', $args[4] ?? null);
+        }
+
+        else throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): Invalid arguments. Arguments can be an associative array, an object, or positional arguments (titre, artiste, url_image, description, id)');
     }
 
     public static function from_array($array){
-        $instance = new Oeuvre();
-        foreach ($array as $key => $value) {
-            $instance->$key = $value;
-        }
+        $instance = new Oeuvre($array);
         return $instance;
     }
 
-    public function __get($key) {
+    public function get($key){
         if(method_exists($this, 'get_'.$key)) return $this->{'get_'.$key}();
         if(in_array($key, self::$columns)) return $this->get_column($key);
         return $this->$key;
+        
+    }
+
+    public function __get($key) {
+        return $this->get($key);
     }
 
     public function get_column($key){
-        if($this->$key === null && !$this->hydrated) $this->hydrate();
-        return $this->$key;
+        if($this->values[$key] === null && !$this->hydrated) $this->hydrate();
+        return $this->values[$key];
     }
 
     public function get_link(){
-        if($this->id === null) return null;
-        return Config::getInstance()->url_root.'view/?id='.$this->id;
+        if($this->values['id'] === null) return null;
+        return Config::getInstance()->url_root.'view/?id='.$this->values['id'];
     }
 
     public function get_image(){
-        if($this->url_image === null) $this->hydrate();
-        if($this->url_image === null) return null;
-        return Config::getInstance()->url_img.$this->url_image;
+        if($this->values['url_image'] === null) return null;
+        return Config::getInstance()->url_img.$this->values['url_image'];
     }
 
-    public function get_title(){
-        if($this->titre === null) return 'Sans titre';
-        return $this->titre;
-    }
-
-    public function get_artist(){
-        if($this->artiste === null) return 'Anonyme';
-        return $this->artiste;
-    }
-
-    public function get_description(){
-        if($this->description === null) return 'Sans description';
-        return $this->description;
-    }
-
-    public function __set($key, $value) {
+    public function set($key, $value){
         if(method_exists($this, 'set_'.$key)) return $this->{'set_'.$key}($value);
         if(in_array($key, self::$columns)) return $this->set_column($key, $value);
 
@@ -85,8 +87,12 @@ class Oeuvre {
         return false;
     }
 
+    public function __set($key, $value) {
+        return $this->set($key, $value);
+    }
+
     public function set_column($key, $value){
-        $this->$key = $value;
+        $this->values[$key] = $value;
     }
 
     // ----- DB methods -----
@@ -198,12 +204,22 @@ class Oeuvre {
         // Ajout des filtres
         $filters = self::uniformizeFilters($filters);
 
-        if(!empty($options['return']) && $options['return'] === 'count') {
-            $options['limit'] = null;
-            $options['offset'] = null;
-            $select = 'SELECT COUNT(*) ';
+        $select = 'SELECT * ';
+
+        if(!empty($options['select'])){
+            if($options['select'] === 'COUNT') $select = 'SELECT COUNT(*) ';
+            else if(is_array($options['select'])){
+                $select = 'SELECT ';
+                foreach ($options['select'] as $key => $value) {
+                    if(!in_array($value, self::$columns)) throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): Invalid argument $options[\'return\']. Array values must match columns names ('.implode(', ', self::$columns).')');
+                    $select .= $value.', ';
+                }
+                $select = substr($select, 0, -2);
+                $select .= ' ';
+            }
+            else if(is_string($options['select']) && in_array($options['select'], self::$columns)) $select = 'SELECT '.$options['select'].' ';
+            else throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): Invalid argument $options[\'select\']. String value must match columns names ('.implode(', ', self::$columns).') or implemented functions (\'COUNT\').');
         }
-        else $select = 'SELECT * ';
 
         $sql = $select;
         $sql .= 'FROM '.self::$table;
@@ -227,29 +243,24 @@ class Oeuvre {
         if(!empty($options['order'])) $sql .= ' '.$options['order'];
 
         // Exécution de la requête
+        static::$lastQuery = $sql;
         $stmt = self::$bdd->prepare($sql);
         $stmt->execute($params);
 
         // Récupération des résultats
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if(!empty($options['return'])){
-            switch($options['return']){
-                case 'count' :
+        if(!empty($options['select'])){
+            switch($options['select']){
+                case 'COUNT' :
                     return $results[0]['COUNT(*)'];
-                case 'ids' :
-                    return array_map(function ($result) {
-                        return $result['id'];
-                    }, $results);
             }
         }
         
         // Création des instances
         $instances = [];
         foreach ($results as $result) {
-            $instance = new Oeuvre();
-            $instance->id = $result['id'];
-            $instances[] = $instance;
+            $instances[] = new Oeuvre($result);
         }
 
         return $instances;
@@ -288,16 +299,18 @@ class Oeuvre {
     }
 
     public function hydrate(){
-        if($this->id === null) return false;
+        if($this->values['id'] === null) return false;
         if($this->hydrated) return true;
 
-        $stmt = self::$bdd->prepare('SELECT * FROM '.self::$table.' WHERE id = :id');
-        $stmt->execute(['id' => $this->id]);
+        $sql = 'SELECT * FROM '.self::$table.' WHERE id = :id';
+        static::$lastQuery = $sql;
+        $stmt = self::$bdd->prepare($sql);
+        $stmt->execute(['id' => $this->values['id']]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         if(!$result) return false;
         
         foreach ($result as $key => $value) {
-            if($this->$key === null) $this->$key = $value;
+            if($this->values[$key] === null) $this->values[$key] = $value;
         }
 
         $this->hydrated = true;
@@ -306,19 +319,19 @@ class Oeuvre {
     }
 
     public function save(){
-        if($this->id === null) return $this->insert();
+        if($this->values['id'] === null) return $this->insert();
         return $this->update();
     }
 
     private function insert(){
         $stmt = self::$bdd->prepare('INSERT INTO '.self::$table.' (titre, artiste, url_image, description) VALUES (:titre, :artiste, :url_image, :description)');
         $stmt->execute([
-            'titre' => $this->titre,
-            'artiste' => $this->artiste,
-            'url_image' => $this->url_image,
-            'description' => $this->description
+            'titre' => $this->get('titre'),
+            'artiste' => $this->get('artiste'),
+            'url_image' => $this->get('url_image'),
+            'description' => $this->get('description')
         ]);
-        $this->id = self::$bdd->lastInsertId();
+        $this->values['id'] = self::$bdd->lastInsertId();
         return true;
     }
 
@@ -326,13 +339,15 @@ class Oeuvre {
         if(!$this->hydrated) $this->hydrate();
         if(!$this->hydrated) $this->insert(); // Si l'instance n'existe pas en base, on l'insère
 
-        $stmt = self::$bdd->prepare('UPDATE '.self::$table.' SET titre = :titre, artiste = :artiste, url_image = :url_image, description = :description WHERE id = :id');
+        $sql = 'UPDATE '.self::$table.' SET titre = :titre, artiste = :artiste, url_image = :url_image, description = :description WHERE id = :id';
+        static::$lastQuery = $sql;
+        $stmt = self::$bdd->prepare($sql);
         $stmt->execute([
-            'id' => $this->id,
-            'titre' => $this->titre,
-            'artiste' => $this->artiste,
-            'url_image' => $this->url_image,
-            'description' => $this->description
+            'id' => $this->get('id'),
+            'titre' => $this->get('titre'),
+            'artiste' => $this->get('artiste'),
+            'url_image' => $this->get('url_image'),
+            'description' => $this->get('description')
         ]);
         return true;
     }
@@ -341,18 +356,20 @@ class Oeuvre {
         if(!$this->hydrated) $this->hydrate();
         if(!$this->hydrated) return false;
 
-        $stmt = self::$bdd->prepare('DELETE FROM '.self::$table.' WHERE id = :id');
-        $stmt->execute(['id' => $this->id]);
+        $sql = 'DELETE FROM '.self::$table.' WHERE id = :id';
+        static::$lastQuery = $sql;
+        $stmt = self::$bdd->prepare($sql);
+        $stmt->execute(['id' => $this->get('id')]);
         return true;
     }
 
     public function to_array(){
         return [
-            'id' => $this->id,
-            'titre' => $this->titre,
-            'artiste' => $this->artiste,
-            'url_image' => $this->url_image,
-            'description' => $this->description
+            'id' => $this->get('id'),
+            'titre' => $this->get('titre'),
+            'artiste' => $this->get('artiste'),
+            'url_image' => $this->get('url_image'),
+            'description' => $this->get('description')
         ];
     }
 
