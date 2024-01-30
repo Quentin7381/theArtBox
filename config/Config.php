@@ -44,9 +44,19 @@ $cfg->url_root = $matches[0] ?? '/';
 
 $root = dirname(__DIR__);
 $root = str_replace($cfg->url_root, '', $root);
-$cfg->path_root = $root;
-$cfg->path_templates = $cfg->path_root.'/templates/';
-$cfg->path_js = $cfg->path_root.'/js/';
+$cfg->path_root = $root.'/';
+$cfg->path_templates = $cfg->path_root.'templates/';
+$cfg->path_assets = $cfg->path_root.'assets/';
+$cfg->path_img = $cfg->path_assets.'img/';
+$cfg->path_css = $cfg->path_assets.'css/';
+$cfg->path_js = $cfg->path_assets.'js/';
+$cfg->path_includes = $cfg->path_root.'includes/';
+
+$cfg->url_assets = $cfg->url_root.'assets/';
+$cfg->url_img = $cfg->url_assets.'img/';
+$cfg->url_css = $cfg->url_assets.'css/';
+$cfg->url_js = $cfg->url_assets.'js/';
+$cfg->url_admin = $cfg->url_root.'admin/';
 
 $cfg->db_host = 'localhost';
 $cfg->db_user = 'root';

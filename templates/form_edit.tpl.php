@@ -23,7 +23,7 @@
         </td>
         <td>
             <label class="fileBtn" for="edit_image<?= isset($key) ? '_'.$key : ''?>" data-key="<?= $key ?>">
-                <img src="<?= $cfg->url_root.'img/'.$oeuvre->url_image ?>" alt="🢙" data-key="<?= $key ?>">
+                <img src="<?= $cfg->url_img.$oeuvre->url_image ?>" alt="🢙" data-key="<?= $key ?>">
             </label>
             <input id="edit_image<?= isset($key) ? '_'.$key : ''?>" type="file" name="image" data-key="<?= $key ?>">
         </td>

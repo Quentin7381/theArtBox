@@ -23,11 +23,11 @@ function saveImage($image){
         if($image_size <= 1000000){
             $n = 2;
             $base_name = pathinfo($image_name, PATHINFO_FILENAME);
-            while(file_exists($cfg->path_root.'/img/'.$image_name)){
+            while(file_exists($cfg->path_img.$image_name)){
                 $image_name = $base_name.'_'.$n.'.'.$image_extension;
             }
 
-            $image_destination = $cfg->path_root.'/img/'.$image_name;
+            $image_destination = $cfg->path_img.$image_name;
             move_uploaded_file($image_tmp_name, $image_destination);
             return $image_name;
         }
@@ -37,7 +37,7 @@ function saveImage($image){
 
 switch($_POST['action']){
     case 'search' :
-        header('Location: '.$cfg->url_root.'/admin/index.php?titre='.$_POST['titre'].'&artiste='.$_POST['artiste'].'&description='.$_POST['description'].'&image='.$_POST['image_name']);
+        header('Location: '.$cfg->url_admin.'/index.php?titre='.$_POST['titre'].'&artiste='.$_POST['artiste'].'&description='.$_POST['description'].'&image='.$_POST['image_name']);
         exit;
     case 'update' :
         $oeuvre = Oeuvre::fetch(['id' => $_POST['id']]);
@@ -47,7 +47,7 @@ switch($_POST['action']){
         $oeuvre->description = $_POST['description'];
         $oeuvre->url_image = saveImage($_FILES['image']);
         $oeuvre->save();
-        header('Location: '.$cfg->url_root.'admin/?action=update');
+        header('Location: '.$cfg->url_admin.'/?action=update');
         exit;
     case 'add' :
         $oeuvre = new Oeuvre();
@@ -56,12 +56,12 @@ switch($_POST['action']){
         $oeuvre->description = $_POST['description'];
         $oeuvre->url_image = saveImage($_FILES['image']);
         $oeuvre->save();
-        header('Location: '.$cfg->url_root.'admin/?action=add');
+        header('Location: '.$cfg->url_admin.'/?action=add');
         exit;
     case 'delete' :
         $oeuvre = Oeuvre::fetch(['id' => $_POST['id']]);
         $oeuvre = $oeuvre[0];
         $oeuvre->delete();
-        header('Location: '.$cfg->url_root.'admin/?action=delete');
+        header('Location: '.$cfg->url_admin.'/?action=delete');
         exit;
 }

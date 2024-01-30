@@ -59,7 +59,7 @@ class Oeuvre {
     public function get_image(){
         if($this->url_image === null) $this->hydrate();
         if($this->url_image === null) return null;
-        return Config::getInstance()->url_root.'img/'.$this->url_image;
+        return Config::getInstance()->url_img.$this->url_image;
     }
 
     public function get_title(){

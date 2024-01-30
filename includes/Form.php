@@ -61,7 +61,7 @@ class Form {
             $image = $value;
             $ext = pathinfo($image['name'], PATHINFO_EXTENSION);
             $name = uniqid().'.'.$ext;
-            move_uploaded_file($image['tmp_name'], $this->cfg->path_root.'/img/'.$name);
+            move_uploaded_file($image['tmp_name'], $this->cfg->path_img.$name);
             $this->data[$key] = $name;
         } else {
             $this->errors[$key] = 'Erreur lors de l\'upload de l\'image';

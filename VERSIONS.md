@@ -1,5 +1,12 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.2.2 Reorganisation des fichiers
+
+Creation du dossier assets pour les fichiers statiques (css, js, images)
+Deplacement du dossier vendor dans le dossier includes
+Modification config pour une utilisation plus dynamique des chemins (path_img, url_img, etc.)
+Mise a jout du gitignore pour les nouveaux chemins
+
 ### Feat_BDD 0.2.1 Ajout js UX admin
 
 Confirmation de suppression / edition / ajout d'oeuvre
