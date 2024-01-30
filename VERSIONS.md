@@ -1,5 +1,15 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.2.0 Ajout formulaire d'ajout / edition / suppression d'oeuvre
+
+Ajout formulaire d'ajout / edition / suppression d'oeuvre
+Ajout d'une option "return" a Oeuvre::fetch, not. pour Count, methode plus performante pour recuperer le nombre de resultats
+Ajout d'une methode "delete" a Oeuvre
+Maj du style css pour affichage du formulaire
+Nb max de résultats configurable dans config.php
+Ajout d'une todo list dans le fichier TODO.md
+Correction typos mineures
+
 ### Feat_BDD 0.1.0 Implemetation de la classe Oeuvre dans le site
 
 Ajout de la classe Oeuvre dans le site.

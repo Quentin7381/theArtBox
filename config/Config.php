@@ -52,6 +52,7 @@ $cfg->db_user = 'root';
 $cfg->db_pass = '';
 $cfg->db_name = 'theartbox';
 $cfg->db_throwExceptions = true;
+$cfg->db_defaultLimit = 10;
 
 $cfg->autoload = $cfg->path_root.'/includes/Autoload.php';
 require_once $cfg->autoload;

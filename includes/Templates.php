@@ -18,7 +18,7 @@ class Templates{
         if(file_exists($path)){
             return $path;
         }else{
-            throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.' : teplate file "'.$path.'" not found. Please verify template folder in config file or that the template file exists.');
+            throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.' : template file "'.$path.'" not found. Please verify template folder in config file or that the template file exists.');
         }
     }
 

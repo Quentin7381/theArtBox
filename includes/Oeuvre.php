@@ -1,7 +1,6 @@
 <?php
 
 class Oeuvre {
-
     static protected $instances = [];
     static protected $table = 'oeuvres';
     static protected $bdd = null;
@@ -199,7 +198,15 @@ class Oeuvre {
         // Ajout des filtres
         $filters = self::uniformizeFilters($filters);
 
-        $sql = 'SELECT id FROM '.self::$table;
+        if(!empty($options['return']) && $options['return'] === 'count') {
+            $options['limit'] = null;
+            $options['offset'] = null;
+            $select = 'SELECT COUNT(*) ';
+        }
+        else $select = 'SELECT * ';
+
+        $sql = $select;
+        $sql .= 'FROM '.self::$table;
         $sql .= ' WHERE 1';
         $params = [];
         foreach ($filters as $key => $filter) {
@@ -225,6 +232,17 @@ class Oeuvre {
 
         // Récupération des résultats
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if(!empty($options['return'])){
+            switch($options['return']){
+                case 'count' :
+                    return $results[0]['COUNT(*)'];
+                case 'ids' :
+                    return array_map(function ($result) {
+                        return $result['id'];
+                    }, $results);
+            }
+        }
         
         // Création des instances
         $instances = [];
@@ -316,6 +334,15 @@ class Oeuvre {
             'url_image' => $this->url_image,
             'description' => $this->description
         ]);
+        return true;
+    }
+
+    function delete(){
+        if(!$this->hydrated) $this->hydrate();
+        if(!$this->hydrated) return false;
+
+        $stmt = self::$bdd->prepare('DELETE FROM '.self::$table.' WHERE id = :id');
+        $stmt->execute(['id' => $this->id]);
         return true;
     }
 

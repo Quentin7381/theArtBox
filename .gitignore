@@ -1,2 +1,5 @@
 build/
 .phpunit.result.cache
+save/*
+.vscode/*
+img/*
