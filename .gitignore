@@ -3,3 +3,4 @@ build/
 save/*
 .vscode/*
 assets/img/*
+vendor/*

@@ -16,7 +16,7 @@ class OeuvresTest extends TestSetup{
         $this->stmtMock = $this->createMock(PDOStatement::class);
         $this->BDD->method('prepare')->willReturn($this->stmtMock);
         $this->stmtMock->method('execute')->willReturn(true);
-        $this->stmtMock->method('fetchAll')->willReturn([]);
+        // $this->stmtMock->method('fetchAll')->willReturn([0=>'value']);
         $this->Oeuvre['properties']['bdd']->setValue(null, $this->BDD);
 
         // Listen to the last SQL query
@@ -327,7 +327,7 @@ class OeuvresTest extends TestSetup{
         );
 
         // invalid column name
-        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument. $options[\'select\']. String value must match a column names (titre, artiste, url_image, description, id) or implemented functions (COUNT)');
+        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument $options[\'select\']. String value must match columns names (id, titre, artiste, url_image, description) or implemented functions (\'COUNT\').');
         Oeuvre::fetch([], [
             'select' => 'invalid'
         ]);
