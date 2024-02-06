@@ -30,7 +30,7 @@ class Oeuvre {
         }
 
         else if(count($args) === 1 && is_object($args[0])) {
-            $this->values['id'] = $args[0]->id ?? null;
+            $this->set('id', $args[0]->id ?? null);
             $this->set('titre', $args[0]->titre ?? null);
             $this->set('artiste', $args[0]->artiste ?? null);
             $this->set('url_image', $args[0]->url_image ?? null);
@@ -45,7 +45,7 @@ class Oeuvre {
             $this->set('id', $args[4] ?? null);
         }
 
-        else throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): Invalid arguments. Arguments can be an associative array, an object, or positional arguments (titre, artiste, url_image, description, id)');
+        else {throw new Exception('In '.__CLASS__.'::'.__FUNCTION__.'(): Invalid arguments. Arguments can be an associative array, an object, or positional arguments (titre, artiste, url_image, description, id)');}
     }
 
     public static function from_array($array){
@@ -57,7 +57,6 @@ class Oeuvre {
         if(method_exists($this, 'get_'.$key)) return $this->{'get_'.$key}();
         if(in_array($key, self::$columns)) return $this->get_column($key);
         return $this->$key;
-        
     }
 
     public function __get($key) {
@@ -92,6 +91,9 @@ class Oeuvre {
     }
 
     public function set_column($key, $value){
+        $value = htmlspecialchars($value);
+        $value = trim($value);
+
         $this->values[$key] = $value;
     }
 
@@ -243,7 +245,6 @@ class Oeuvre {
         if(!empty($options['order'])) $sql .= ' '.$options['order'];
 
         // Exécution de la requête
-        static::$lastQuery = $sql;
         $stmt = self::$bdd->prepare($sql);
         $stmt->execute($params);
 
@@ -259,7 +260,7 @@ class Oeuvre {
         
         // Création des instances
         $instances = [];
-        foreach ($results as $result) {
+        foreach ($results ?? [] as $result) {
             $instances[] = new Oeuvre($result);
         }
 
@@ -303,7 +304,7 @@ class Oeuvre {
         if($this->hydrated) return true;
 
         $sql = 'SELECT * FROM '.self::$table.' WHERE id = :id';
-        static::$lastQuery = $sql;
+
         $stmt = self::$bdd->prepare($sql);
         $stmt->execute(['id' => $this->values['id']]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);

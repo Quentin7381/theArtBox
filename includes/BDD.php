@@ -8,8 +8,9 @@ class BDD extends PDO {
         $cfg = Config::getInstance();
         $dsn = 'mysql:host=' . $cfg->db_host . ';dbname=' . $cfg->db_name . ';charset=utf8';
         parent::__construct($dsn, $cfg->db_user, $cfg->db_pass);
-        if($cfg->db_throwExceptions)
-        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if($cfg->db_throwExceptions){
+            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
     }
 
     public static function getInstance() {

@@ -1,5 +1,12 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.4 Prise en charge des erreurs de formulaire
+
+Verification des saisies (tailles min et max, etc.)
+Strip et trim des saisies
+Affichage des erreurs dans le formulaire
+Ajout d'un affichage not found pour la visualisation d'une oeuvre inexistante
+
 ### Feat_BDD 0.3 Dossier vendor retire de Git
 
 ### Feat_BDD 0.2.2 Reorganisation des fichiers

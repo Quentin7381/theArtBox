@@ -37,6 +37,9 @@ if(params.get('action')){
         case 'update':
             document.getElementById(popupId).classList.add('active', 'update');
             break;
+        case 'error':
+            document.getElementById(popupId).classList.add('active', 'error');
+            break;
     }
 
     // Disparition popup

@@ -38,10 +38,46 @@
 <?php require $templates->head ?>
 <body>
     <?php require $templates->header ?>
-    <?php require $templates->confirmPopup ?>
+
+<?php
+    $action = $_GET['action'] ?? '';
+    $text = '';
+    if(!empty($action)){
+        switch($action){
+            case 'update' :
+                $text = 'Element <span class="action">mis à jour</span> avec succès.';
+                break;
+            case 'delete' :
+                $text = 'Element <span class="action">supprimé</span> avec succès.';
+                break;
+            case 'add' :
+                $text = 'Element <span class="action">ajouté</span> avec succès.';
+                break;
+            case 'error' :
+                $text = 'Une <span class="action">erreur</span> est survenue :';
+                if(!empty($_GET['message'])) $text .= '<br>'.$_GET['message'];
+                break;
+        }
+        
+        require $templates->confirmPopup;
+        unset($text);
+        unset($action);
+    }
+?>
 
     <h3>Filter :</h3>
     <?php require $templates->form_search ?>
+
+    <?php 
+        if(
+            !empty($_GET['action'])
+            && $_GET['action'] == 'error'
+            && !empty($_GET['message'])
+        ) {
+            echo '<p class="error">'.$_GET['message'].'</p>';
+        }
+    ?>
+
 
     <table class="results">
         <h3>Results :</h3>

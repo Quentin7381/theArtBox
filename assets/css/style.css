@@ -320,23 +320,34 @@ input[type="file"]{
     border-color: darkred;
 }
 
+#confirmPopup.error{
+    border-color: red;
+}
+
 #confirmPopup .action{
     font-weight: bold;
 }
 
-#confirmPopup.add .action::after{
-    content: "ajouté";
+#confirmPopup.add .action{
     color: green;
 }
 
-#confirmPopup.update .action::after{
-    content: "modifié";
+#confirmPopup.update .action{
     color: darkorange;
 }
 
-#confirmPopup.delete .action::after{
-    content: "supprimé";
+#confirmPopup.delete .action{
     color: darkred;
+}
+
+#confirmPopup.error .action{
+    color: red;
+}
+
+p.error{
+    padding: 8px;
+    color: red;
+    border: 1px solid red;
 }
 
 td, th{
@@ -373,3 +384,7 @@ td, th{
         width: 200px;
     }
 }
+
+.notFound a{
+    color: blue;
+}   

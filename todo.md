@@ -4,18 +4,25 @@
     [x] ... de suppression
     [x] ... de recherche
 
-[ ] Ajout couche JS au formulaire d'edition
-    [ ] reinitialiser valeur
+[x] Ajout couche JS au formulaire d'edition
+    [x] reinitialiser valeur
     [ ] afficher message d'erreur
-    [ ] afficher message de succes
-    [ ] visualiser chargement d'image
+    [x] afficher message de succes
+    [x] visualiser chargement d'image
+
+[ ] Refacto
+    [ ] Css -> scss
+
+[ ] Documentation
 
 [ ] Ajout couche de validation php/js
 
 [ ] Tests unitaires
     [ ] Mocks
 
-[ ] Refacto
-    [ ] Css -> scss
-
-[ ] Documentation
+[ ] Corrections
+    [ ] Retirer vendor de GIT
+    [ ] Accolades sur IF
+    [ ] SELECT * -> vrais champs
+    [ ] Ajout erreur si détail non existant
+    [ ] + verifier fiche auto evaluation

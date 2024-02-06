@@ -1,3 +1,3 @@
 <div id="confirmPopup">
-    <p>Element <span class="action"></span> avec succès.</p>
+    <p><?=$text?></p>
 </div>

@@ -15,7 +15,8 @@
     <?php require $templates->header ?>
     <main>
         <?php
-            require $templates->fullView;
+            if(!$oeuvre->hydrated) require $templates->notFound;
+            else require $templates->fullView;
         ?>
     </main>
     <?php require $templates->footer ?>
