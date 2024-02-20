@@ -10,7 +10,7 @@ class ExceptionFactoryTest extends TestSetup{
 
     function test__getStack(){
         $EF = new EF();
-        $EF->getStack();
+        $EF->getStack(-2);
         
         $backtrace = $this->ExceptionFactory['properties']['backtrace']->getValue($EF);
         $class = $this->ExceptionFactory['properties']['class']->getValue($EF);
@@ -41,7 +41,7 @@ class ExceptionFactoryTest extends TestSetup{
 
         // Il est possible de passer un offset à getStack pour récupérer une ligne précédente
         // Cela est utile lorsqu'une exception est levée dans une méthode appelée par une autre méthode
-        $EF->getStack(1);
+        $EF->getStack(0);
         $expected = 'PHPUnit\Framework\TestCase';
         $class = $this->ExceptionFactory['properties']['class']->getValue($EF);
 
@@ -55,7 +55,7 @@ class ExceptionFactoryTest extends TestSetup{
         $this->ExceptionFactory['properties']['class']->setValue($EF, '<class>');
         $this->ExceptionFactory['properties']['function']->setValue($EF, '<function>');
         $this->ExceptionFactory['properties']['file']->setValue($EF, '<file>');
-        $this->ExceptionFactory['properties']['line']->setValue($EF, '<line>');
+        $this->ExceptionFactory['properties']['line']->setValue($EF, 1);
         $this->ExceptionFactory['properties']['arguments']->setValue($EF, ['<arg1>', '<arg2>']);
 
         $EF->setHeader();
@@ -63,7 +63,7 @@ class ExceptionFactoryTest extends TestSetup{
         // setHeader génère un message avec les informations de la stack
         $message = $this->ExceptionFactory['properties']['message']->getValue($EF);
         $expected = 'In <class>::<function>(<arg1>, <arg2>):' . PHP_EOL;
-        $expected .= 'Line <line> in <file>' . PHP_EOL;
+        $expected .= 'Line 1 in <file>' . PHP_EOL;
         $expected .= '<message>';
 
         $this->assertEquals($expected, $message);
@@ -128,7 +128,6 @@ class ExceptionFactoryTest extends TestSetup{
             ->method('generate')
             ->with(LogicException::class)
             ->willReturnCallback($callback);
-
 
         $parameterName = '<parameterName>';
         $parameterValue = '<parameterValue>';
@@ -245,15 +244,15 @@ class ExceptionFactoryTest extends TestSetup{
 
         // setup des propriétés
         $this->ExceptionFactory['properties']['message']->setValue($EF, '<message>');
-        $this->ExceptionFactory['properties']['code']->setValue($EF, '<code>');
+        $this->ExceptionFactory['properties']['code']->setValue($EF, 123);
         $this->ExceptionFactory['properties']['previous']->setValue($EF, new Exception());
-        $this->ExceptionFactory['properties']['backtraceOffset']->setValue($EF, '<backtraceOffset>');
+        $this->ExceptionFactory['properties']['backtraceOffset']->setValue($EF, 2);
 
         // setup des propriétés de la stack
         $this->ExceptionFactory['properties']['class']->setValue($EF, '<class>');
         $this->ExceptionFactory['properties']['function']->setValue($EF, '<function>');
         $this->ExceptionFactory['properties']['file']->setValue($EF, '<file>');
-        $this->ExceptionFactory['properties']['line']->setValue($EF, '<line>');
+        $this->ExceptionFactory['properties']['line']->setValue($EF, 123);
         $this->ExceptionFactory['properties']['arguments']->setValue($EF, ['<arg1>', '<arg2>']);
         $this->ExceptionFactory['properties']['backtrace']->setValue($EF, ['<backtrace>']);
 
@@ -274,7 +273,7 @@ class ExceptionFactoryTest extends TestSetup{
         $this->assertNull($this->ExceptionFactory['properties']['backtrace']->getValue($EF));
     }
 
-    function test__argument_wrong_count(){
+    function test__argument_array_wrong_count(){
         $EF = $this->getMockBuilder(EF::class)
             ->onlyMethods(['generate'])
             ->getMock();
@@ -287,7 +286,7 @@ class ExceptionFactoryTest extends TestSetup{
             return $EF;
         };
 
-        // argument_wrong_count appelle generate avec InvalidArgumentException
+        // argument_array_wrong_count appelle generate avec InvalidArgumentException
         $EF->expects($this->once())
             ->method('generate')
             ->with(InvalidArgumentException::class)
@@ -301,7 +300,7 @@ class ExceptionFactoryTest extends TestSetup{
         $previous = new Exception();
         $backtraceOffset = 1;
 
-        $exception = $EF->argument_wrong_count(
+        $exception = $EF->argument_array_wrong_count(
             $argumentName,
             $argumentCount,
             $expectedCount,
@@ -313,26 +312,26 @@ class ExceptionFactoryTest extends TestSetup{
 
         $message = $this->ExceptionFactory['properties']['message']->getValue($exception);
         
-        // argument_wrong_count utilise $argumentName dans le message
+        // argument_array_wrong_count utilise $argumentName dans le message
         $this->assertStringContainsString($argumentName, $message);
 
-        // argument_wrong_count utilise $argumentCount dans le message
+        // argument_array_wrong_count utilise $argumentCount dans le message
         $this->assertStringContainsString($argumentCount, $message);
 
-        // argument_wrong_count utilise $expectedCount dans le message
+        // argument_array_wrong_count utilise $expectedCount dans le message
         $this->assertStringContainsString($expectedCount, $message);
 
-        // argument_wrong_count utilise $actualCount dans le message
+        // argument_array_wrong_count utilise $actualCount dans le message
         $this->assertStringContainsString($actualCount, $message);
 
-        // argument_wrong_count utilise $hint dans le message
+        // argument_array_wrong_count utilise $hint dans le message
         $this->assertStringContainsString($hint, $message);
 
-        // argument_wrong_count utilise $previous dans l'exception
+        // argument_array_wrong_count utilise $previous dans l'exception
         $actual = $this->ExceptionFactory['properties']['previous']->getValue($exception);
         $this->assertEquals($previous, $actual);
 
-        // argument_wrong_count utilise $backtraceOffset dans l'exception
+        // argument_array_wrong_count utilise $backtraceOffset dans l'exception
         $actual = $this->ExceptionFactory['properties']['backtraceOffset']->getValue($exception);
         $this->assertEquals($backtraceOffset, $actual);
     }

@@ -436,7 +436,7 @@ class Set{
 
     public static function generate($args){
         if(empty($args) || count($args) > 2){
-            throw EF::argument_wrong_count(
+            throw EF::argument_array_wrong_count(
                 'args',
                 count($args),
                 1,
@@ -478,7 +478,7 @@ class Condition{
         // Les $args est un tableau non indexé
         if(!isAssoc($args)){
             if(count($args) < 2 || count($args) > 4){
-                throw EF::argument_wrong_count(
+                throw EF::argument_array_wrong_count(
                     'args',
                     count($args),
                     2,
@@ -515,7 +515,7 @@ class Order{
 
     public static function generate($args){
         if(empty($args) || count($args) > 2){
-            throw EF::argument_wrong_count(
+            throw EF::argument_array_wrong_count(
                 'args',
                 count($args),
                 1,

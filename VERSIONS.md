@@ -1,5 +1,11 @@
 # Versions du projet theArtbox
 
+## 0.11 (progress, stableish) Typage et commentaires ExceptionFactory
+
+Ajout de typage dans ExceptionFactory
+Ajout de commentaires dans ExceptionFactory
+Reajustement des tests unitaires pour ExceptionFactory (en cours)
+
 ### Feat_BDD 0.10 (progress, stableish) Tests unitaires Oeuvre
 
 Ajout de tests unitaires pour la classe Oeuvre (en cours)
