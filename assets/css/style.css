@@ -107,7 +107,7 @@ footer {
     max-width: 470px;
 }
 
-/* ----- AJOUT OEUVRE ----- */
+/* ----- ADMIN ----- */
 
 body{
     max-width: 1200px;
@@ -119,6 +119,12 @@ table{
     border-collapse: collapse;
     width: 100%;
     text-align: center;
+}
+
+caption{
+    text-align: left;
+    font-weight: bold;
+    font-size: 18px;
 }
 
 td > *{

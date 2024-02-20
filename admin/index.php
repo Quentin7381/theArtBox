@@ -4,10 +4,10 @@
 
     $templates = Templates::instance();
     $search = [];
-    if(!empty($_GET['titre'])) $search['titre'] = $_GET['titre'];
-    if(!empty($_GET['auteur'])) $search['auteur'] = $_GET['auteur'];
-    if(!empty($_GET['description'])) $search['description'] = $_GET['description'];
-    if(!empty($_GET['image'])) $search['url_image'] = $_GET['image'];
+    if(!empty($_GET['titre'])) {$search['titre'] = $_GET['titre'];}
+    if(!empty($_GET['auteur'])) {$search['auteur'] = $_GET['auteur'];}
+    if(!empty($_GET['description'])) {$search['description'] = $_GET['description'];}
+    if(!empty($_GET['image'])) {$search['url_image'] = $_GET['image'];}
 
     $search = array_map(function ($value) {
         $value = trim($value);
@@ -68,7 +68,7 @@
     <h3>Filter :</h3>
     <?php require $templates->form_search ?>
 
-    <?php 
+    <?php
         if(
             !empty($_GET['action'])
             && $_GET['action'] == 'error'
@@ -80,7 +80,7 @@
 
 
     <table class="results">
-        <h3>Results :</h3>
+        <caption>Results :</caption>
         <thead>
             <tr>
                 <th>N°</th>

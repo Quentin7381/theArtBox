@@ -10,16 +10,19 @@
 
 <!-- CONTENU PAGE -->
 
-<?php require $templates->head ?>
+<?php require_once $templates->head ?>
 <body>
-    <?php require $templates->header ?>
+    <?php require_once $templates->header ?>
     <main>
         <?php
-            if(!$oeuvre->hydrated) require $templates->notFound;
-            else require $templates->fullView;
+            $template = $templates->fullView;
+            if(!$oeuvre->hydrated) {
+                $template= $templates->notFound;
+            }
+            require_once $template;
         ?>
     </main>
-    <?php require $templates->footer ?>
+    <?php require_once $templates->footer ?>
 </body>
 </html>
 
