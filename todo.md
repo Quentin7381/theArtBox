@@ -27,7 +27,7 @@
     [x] Doc
     [ ] Eclater en sous fonctions
     [x] SELECT * -> vrais champs
-    [ ] Gestion des Exceptions personnalisée
+    [x] Gestion des Exceptions personnalisée
     [x] Ajout erreur si détail non existant
     [x] + verifier fiche auto evaluation
     [ ] revoir verification exceptions tests

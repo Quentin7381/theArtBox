@@ -432,13 +432,10 @@ class Oeuvre
         $sql = new Querry();
         $sql->select($options['select'] ?? self::$columns);
         $sql->from(self::$table);
-        $sql->where($filters);
-
-        foreach ($filters as $key => $filter) {
-            $value = $filter['value'];
-            $operator = $filter['operator'] ?? '=';
-            $column = $key;
-            $connector = 'AND';
+        
+        $filters = self::uniformizeFilters($filters);
+        foreach ($filters as $filter) {
+            $sql->where($filter);
         }
 
         // Ajout des options
@@ -493,35 +490,48 @@ class Oeuvre
     {
         $uniformizedFilters = [];
         foreach ($filters as $column => $filter) {
+            $value;
+            $operator;
+            $connector;
+
             if (
                 // Le filtre est un tableau contenant un index 'value' (et optionnellement un index 'operator')
                 is_array($filter)
                 && isset($filter['value'])
             ) {
-                $filter['column'] = $column;
-                $uniformizedFilters[] = $filter;
-                continue;
+                $value = $filter['value'];
+                $operator = $filter['operator'] ?? '=';
+                $connector = $filter['connector'] ?? 'AND';
             }
 
-            if (
+            elseif (
                 // Le filtre est un tableau sans indexes, contenant une suite de valeurs
                 is_array($filter)
             ) {
-                $uniformizedFilters[] = [
-                    'column' => $column,
-                    'value' => '(' . implode(', ', $filter) . ')',
-                    'operator' => 'IN'
-                ];
-                continue;
+                $value = '(' . implode(', ', $filter) . ')';
+                $operator = 'IN';
             }
 
             // Le filtre est une valeur simple
-            $uniformizedFilters[] = [
-                'column' => $column,
-                'value' => $filter,
+            else{
+                $value = $filter;
+            }
 
-            ];
+            // Préparation des arguments
+            $arguments = [$column, $value];
+            
+            // Les opérateurs et connecteurs sont optionnels
+            if(isset($operator)){
+                $arguments[] = $operator;
+            }
+            if(isset($connector)){
+                $arguments[] = $connector;
+            }
+
+            // Création de l'instance de Condition
+            $uniformizedFilters[] = new Condition(...$arguments);
         }
+
         return $uniformizedFilters;
     }
 
@@ -544,7 +554,7 @@ class Oeuvre
         $this->sql = new Querry();
         $this->sql->select(self::$columns);
         $this->sql->from(self::$table);
-        $this->sql->where('id', $this->values['id']);
+        $this->sql->where(['id' => $this->values['id']]);
 
         $sql = $this->sql->print();
 
