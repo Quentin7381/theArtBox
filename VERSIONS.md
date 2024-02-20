@@ -1,5 +1,9 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.9 (progress, UNSTABLE) Tests unitaires ExceptionFactory
+
+Ajout de tests unitaires pour la classe ExceptionFactory
+
 ### Feat_BDD 0.8 (progress, UNSTABLE) Refacto Oeuvre
 
 Refactorisation de la classe Oeuvre pour une meilleure separation des responsabilites

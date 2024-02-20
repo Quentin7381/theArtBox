@@ -1,6 +1,7 @@
 <?php
 
 class ExceptionFactory {
+    protected static $instance;
 
     protected $message;
     protected $code;
@@ -13,31 +14,44 @@ class ExceptionFactory {
     protected $function;
     protected $arguments;
     protected $backtraceOffset;
-    const ADDITIONAL_OFFSET = 2;
+    const ADDITIONAL_OFFSET = 1;
 
     const INSTANCE_WRONG_PARAMETER = 1001;
     const INSTANCE_WRONG_TYPE = 1002;
     const INSTANCE_WRONG_COUNT = 1003;
     const INSTANCE_ARRAY_MISSING_KEY = 1004;
 
+    public static function getInstance(){
+        $instance = static::$instance ?? new static();
+        $instance->reset();
+        return $instance;
+    }
+
+    public function reset(){
+        $properties = ['message', 'code', 'file', 'line', 'trace', 'class', 'previous', 'backtrace', 'function', 'arguments', 'backtraceOffset'];
+        foreach($properties as $property){
+            static::$instance->$property = null;
+        }
+    }
+
     public function getStack($offset = 0){
         $offset = $offset + static::ADDITIONAL_OFFSET;
 
         $this->backtrace = debug_backtrace();
-        $this->class = $this->backtrace[$offset]['class'];
-        $this->function = $this->backtrace[$offset]['function'];
-        $this->file = $this->backtrace[$offset]['file'];
-        $this->line = $this->backtrace[$offset]['line'];
-        $this->arguments = $this->backtrace[$offset]['args'];
+        $this->class = $this->backtrace[$offset]['class'] ?? '';
+        $this->function = $this->backtrace[$offset]['function'] ?? '';
+        $this->file = $this->backtrace[$offset]['file'] ?? '';
+        $this->line = $this->backtrace[$offset]['line'] ?? '';
+        $this->arguments = $this->backtrace[$offset]['args'] ?? '';
     }
 
     public function setHeader(){
         $message = '';
         $message .= 'In ' . $this->class;
         $message .='::' . $this->function;
-        $message .= '(' . implode(', ', $this->arguments) . ')' . PHP_EOL;
-        $message .= ': Line ' . $this->line;
-        $message .= ' in ' . $this->file . "\n";
+        $message .= '(' . implode(', ', $this->arguments) . '):' . PHP_EOL;
+        $message .= 'Line ' . $this->line;
+        $message .= ' in ' . $this->file . PHP_EOL;
         $message .= $this->message;
 
         $this->message = $message;
@@ -64,7 +78,7 @@ class ExceptionFactory {
             $message .= PHP_EOL . $hint;
         }
 
-        $exception = new ExceptionFactory();
+        $exception = self::getInstance();
         $exception->message = $message;
         $exception->code = self::INSTANCE_WRONG_PARAMETER;
         $exception->previous = $previous;
@@ -92,7 +106,7 @@ class ExceptionFactory {
             $message .= PHP_EOL . $hint;
         }
 
-        $exception = new ExceptionFactory();
+        $exception = self::getInstance();
         $exception->message = $message;
         $exception->code = self::INSTANCE_WRONG_TYPE;
         $exception->previous = $previous;
@@ -117,7 +131,7 @@ class ExceptionFactory {
             $message .= PHP_EOL . $hint;
         }
 
-        $exception = new ExceptionFactory();
+        $exception = self::getInstance();
         $exception->message = $message;
         $exception->code = self::INSTANCE_WRONG_COUNT;
         $exception->previous = $previous;
@@ -140,7 +154,7 @@ class ExceptionFactory {
             $message .= PHP_EOL . $hint;
         }
 
-        $exception = new ExceptionFactory();
+        $exception = self::getInstance();
         $exception->message = $message;
         $exception->code = self::INSTANCE_ARRAY_MISSING_KEY;
         $exception->previous = $previous;
@@ -161,7 +175,7 @@ class ExceptionFactory {
             $message .= PHP_EOL . $hint;
         }
 
-        $exception = new ExceptionFactory();
+        $exception = self::getInstance();
         $exception->message = $message;
         $exception->code = self::INSTANCE_ARRAY_MISSING_KEY;
         $exception->previous = $previous;
