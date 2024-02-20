@@ -1,5 +1,7 @@
 <?php
 
+use ExceptionFactory as EF;
+
 /**
  * Représente une oeuvre d'art
  *
@@ -128,9 +130,11 @@ class Oeuvre
             $this->set('description', $args[3] ?? null);
             $this->set('id', $args[4] ?? null);
         } else {
-            throw new Exception(
-                'In ' . __CLASS__ . '::' . __FUNCTION__ . '(): ' .
-                'Invalid arguments. Arguments can be an associative array, an object, or positional arguments ' .
+            throw EF::argument_wrong_type(
+                'args',
+                $args,
+                ['array', 'object', 'string', 'int'],
+                'Arguments can be an associative array, an object, or positional arguments' .
                 '(titre, artiste, url_image, description, id)'
             );
         }
@@ -147,10 +151,13 @@ class Oeuvre
      */
     public function get($key)
     {
-        if (method_exists($this, 'get_' . $key))
+        if (method_exists($this, 'get_' . $key)){
             return $this->{'get_' . $key}();
-        if (in_array($key, self::$columns))
+        }
+
+        if (in_array($key, self::$columns)){
             return $this->get_column($key);
+        }
         return $this->$key;
     }
 
@@ -266,8 +273,7 @@ class Oeuvre
      */
     public static function from_array($array): Oeuvre
     {
-        $instance = new Oeuvre($array);
-        return $instance;
+        return new Oeuvre($array);
     }
 
     /**
@@ -298,9 +304,10 @@ class Oeuvre
         $array = [];
         foreach ($instances as $instance) {
             if (!$instance instanceof static) {
-                throw new Exception(
-                    'In ' . __CLASS__ . '::' . __FUNCTION__ . '(): ' .
-                    '$instances must be an array of ' . static::class . ' instances'
+                throw EF::instance_wrong_parameter(
+                    'instances',
+                    $instances,
+                    'array of ' . static::class . ' instances',
                 );
             }
             if (!$instance->hydrated) {

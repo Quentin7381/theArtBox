@@ -1,5 +1,7 @@
 <?php
 
+use ExceptionFactory as EF;
+
 /**
  * Accesseur rapide aux fichiers de templates
  *
@@ -46,7 +48,7 @@ class Templates{
      * @param string $name Nom du template
      * @return string Chemin du template
      */
-    static function get($name): string{
+    public static function get($name): string{
         if(substr($name, 0, 3) == 'js_'){
             return self::get_js(substr($name, 3));
         }
@@ -60,16 +62,16 @@ class Templates{
      * @return string Chemin du template
      * @throws Exception
      */
-    static function get_php($name){
+    public static function get_php($name){
         $cfg = Config::getInstance();
         $path = $cfg->path_templates.$name.'.tpl.php';
         if(file_exists($path)){
             return $path;
         }else{
-            throw new Exception(
-                'In ' . __CLASS__ . '::' . __FUNCTION__ . ' : ' .
-                'template file "'.$path.'" not found. ' .
-                'Please verify template folder in config file or that the template file exists.'
+            throw EF::file_not_found(
+                $path,
+                'To implement a new PHP template, create a file with the name "'.$name.'.tpl.php"'.
+                'in the folder "'.$cfg->path_templates.'".',
             );
         }
     }
@@ -80,16 +82,16 @@ class Templates{
      * @return string Chemin du template
      * @throws Exception
      */
-    static function get_js($name){
+    public static function get_js($name){
         $cfg = Config::getInstance();
         $path = $cfg->path_js.$name.'.js';
         if(file_exists($path)){
             return $path;
         }else{
-            throw new Exception(
-                'In ' . __CLASS__ . '::' . __FUNCTION__ . ' : ' . 
-                'template file "' . $path . '" not found.' . 
-                'Please verify template folder in config file or that the template file exists.'
+            throw EF::file_not_found(
+                $path,
+                'To implement a new JS template, create a file with the name "'.$name.'.js"'.
+                'in the folder "'.$cfg->path_js.'".',
             );
         }
     }
@@ -97,7 +99,7 @@ class Templates{
     /**
      * Permet l'accès rapide aux templates
      */
-    function __get($name){
+    public function __get($name){
         return self::get($name);
     }
 }

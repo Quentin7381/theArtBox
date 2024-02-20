@@ -1,5 +1,9 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.7 ExceptionFactory
+
+Ajout d'une classe ExceptionFactory pour gerer les exceptions de maniere generique
+
 ### Feat_BDD 0.6 Ajout classe Querry
 
 Ajout d'une classe querry pour refactoriser les requetes SQL

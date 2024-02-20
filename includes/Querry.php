@@ -1,5 +1,7 @@
 <?php
 
+use ExceptionFactory as EF;
+
 /**
  * Représente une requête SQL
  *
@@ -82,11 +84,21 @@ class Querry {
 
     public function values($values, $parametric = true){
         if($this->querry['operation'] != 'INSERT'){
-            throw new Exception('Operation must be INSERT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'INSERT',
+                'Use the insert_into() method to set the operation to INSERT.'
+            );
         }
 
         if(!isAssoc($values)){
-            throw new Exception('Values must be an associative array of column => value');
+            throw EF::instance_wrong_parameter(
+                'values',
+                $values,
+                'Associative array',
+                'The values must be an associative array of column => value'
+            );
         }
         
         foreach($values as $column => $value){
@@ -108,17 +120,25 @@ class Querry {
 
     public function from($table){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw ExceptionFactory::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         $this->querry['table'] = $table;
     }
 
-    public function where($conditions, $parametric = true){
+    public function where(array $conditions, $parametric = true){
         if(!in_array($this->querry['operation'], ['SELECT', 'UPDATE', 'DELETE'])){
-            throw new Exception('Operation must be SELECT, UPDATE or DELETE');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT, UPDATE or DELETE',
+                'Use the select(), update() or delete() method to set the operation.'
+            );
         }
-    
-        var_dump($conditions);
 
         foreach($conditions as $condition){
             if(!($condition instanceof Condition)){
@@ -131,7 +151,12 @@ class Querry {
 
     public function order_by($orders){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         
         foreach($orders as $order){
@@ -145,21 +170,36 @@ class Querry {
 
     public function limit($limit){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         $this->querry['limit'] = $limit;
     }
 
     public function offset($offset){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         $this->querry['offset'] = $offset;
     }
 
     public function group_by($columns){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         if(!is_array($columns)){
             $columns = [$columns];
@@ -169,7 +209,12 @@ class Querry {
 
     public function having($conditions){
         if($this->querry['operation'] != 'SELECT'){
-            throw new Exception('Operation must be SELECT');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'SELECT',
+                'Use the select() method to set the operation to SELECT.'
+            );
         }
         
         foreach($conditions as $condition){
@@ -191,7 +236,12 @@ class Querry {
 
     public function set($sets, $parametric = true){
         if($this->querry['operation'] != 'UPDATE'){
-            throw new Exception('Operation must be UPDATE');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                'UPDATE',
+                'Use the update() method to set the operation to UPDATE.'
+            );
         }
         
         foreach($sets as $set){
@@ -216,7 +266,12 @@ class Querry {
     public function print(){
         $valid_operations = ['SELECT', 'INSERT', 'UPDATE', 'DELETE'];
         if(empty($this->querry['operation']) || !in_array($this->querry['operation'], $valid_operations)){
-            throw new Exception('Invalid operation');
+            throw EF::instance_wrong_parameter(
+                'operation',
+                $this->querry['operation'],
+                implode(', ', $valid_operations),
+                'Use the select(), insert_into(), update() or delete() method to set the operation.'
+            );
         }
         $operation = strtolower($this->querry['operation']);
         $method = 'print_' . $operation;
@@ -347,7 +402,13 @@ class Set{
 
     public static function generate($args){
         if(empty($args) || count($args) > 2){
-            throw new Exception('Invalid number of arguments');
+            throw EF::argument_wrong_count(
+                'args',
+                count($args),
+                1,
+                2,
+                'The set() method takes 1 or 2 arguments.'
+            );
         }
 
         if(!isAssoc($args)){
@@ -362,7 +423,7 @@ class Set{
         }
 
         if(!isset($args['column'])){
-            throw new Exception('Missing argument column');
+            throw EF::argument_array_missing_key('column');
         }
 
         return new Set($args['column'], $args['value']);
@@ -383,7 +444,13 @@ class Condition{
         // Les $args est un tableau non indexé
         if(!isAssoc($args)){
             if(count($args) < 2 || count($args) > 4){
-                throw new Exception('Invalid number of arguments');
+                throw EF::argument_wrong_count(
+                    'args',
+                    count($args),
+                    2,
+                    4,
+                    'The condition() method takes 2 to 4 arguments.'
+                );
             }
 
             $keys = array_slice($keys, 0, count($args));
@@ -394,12 +461,12 @@ class Condition{
             !isset($args['column']) ||
             !isset($args['value'])
         ) {
-            throw new Exception('Missing argument column or value');
+            throw EF::argument_array_missing_key('column or value');
         }
 
         return new Condition(
-            $args['column'], 
-            $args['value'], 
+            $args['column'],
+            $args['value'],
             $args['operator'] ?? '=',
             $args['connector'] ?? 'AND'
         );
@@ -414,7 +481,13 @@ class Order{
 
     public static function generate($args){
         if(empty($args) || count($args) > 2){
-            throw new Exception('Invalid number of arguments');
+            throw EF::argument_wrong_count(
+                'args',
+                count($args),
+                1,
+                2,
+                'The order() method takes 1 or 2 arguments.'
+            );
         }
 
         if(!isAssoc($args)){
@@ -423,7 +496,7 @@ class Order{
         }
 
         if(!isset($args['field'])){
-            throw new Exception('Missing argument field');
+            throw EF::argument_array_missing_key('field');
         }
 
         return new Order($args['field'], $args['order'] ?? 'ASC');
