@@ -14,12 +14,13 @@ class ExceptionFactory {
     protected $function;
     protected $arguments;
     protected $backtraceOffset;
-    const ADDITIONAL_OFFSET = 1;
-
+    const ADDITIONAL_OFFSET = 3;
     const INSTANCE_WRONG_PARAMETER = 1001;
-    const INSTANCE_WRONG_TYPE = 1002;
+    const ARGUMENT_WRONG_TYPE = 1002;
     const INSTANCE_WRONG_COUNT = 1003;
     const INSTANCE_ARRAY_MISSING_KEY = 1004;
+    const PDO_INVALID_QUERY = 1005;
+    const ARGUMENT_ARRAY_WRONG_COUNT = 1006;
 
     public static function getInstance(){
         $instance = static::$instance ?? new static();
@@ -30,7 +31,7 @@ class ExceptionFactory {
     public function reset(){
         $properties = ['message', 'code', 'file', 'line', 'trace', 'class', 'previous', 'backtrace', 'function', 'arguments', 'backtraceOffset'];
         foreach($properties as $property){
-            static::$instance->$property = null;
+            $this->$property = null;
         }
     }
 
@@ -108,7 +109,7 @@ class ExceptionFactory {
 
         $exception = self::getInstance();
         $exception->message = $message;
-        $exception->code = self::INSTANCE_WRONG_TYPE;
+        $exception->code = self::ARGUMENT_WRONG_TYPE;
         $exception->previous = $previous;
         $exception->backtraceOffset = $backtraceOffset;
 
@@ -148,7 +149,7 @@ class ExceptionFactory {
         $backtraceOffset = null
     )
     {
-        $message = 'The argument "'.$argumentName.'" is missing a key.';
+        $message = 'The argument "'.$argumentName.'" has a missing key.';
         $message .='Expected: "'.$key.'".';
         if ($hint) {
             $message .= PHP_EOL . $hint;
@@ -182,6 +183,56 @@ class ExceptionFactory {
         $exception->backtraceOffset = $backtraceOffset;
 
         return $exception->generate(Exception::class);
+    }
+
+    public static function pdo_invalid_query(
+        $query,
+        $parameters,
+        $hint = null,
+        $previous = null,
+        $backtraceOffset = null
+    )
+    {
+        $message = 'A PDO query failed with :' . PHP_EOL;
+        $message .= 'Query: "'.$query.'".' . PHP_EOL;
+        $message .= 'Parameters: "'.implode(', ', $parameters).'".' . PHP_EOL;
+
+        if ($hint) {
+            $message .= PHP_EOL . $hint;
+        }
+
+        $exception = self::getInstance();
+        $exception->message = $message;
+        $exception->code = self::PDO_INVALID_QUERY;
+        $exception->previous = $previous;
+        $exception->backtraceOffset = $backtraceOffset;
+
+        return $exception->generate(PDOException::class);
+    }
+
+    public static function argument_array_wrong_count(
+        $argumentName,
+        $minCount,
+        $maxCount,
+        $actualCount,
+        $hint = null,
+        $previous = null,
+        $backtraceOffset = null
+    )
+    {
+        $message = 'The array "'.$argumentName.'" has an invalid count of elements.';
+        $message .='Expected: "'.$minCount.'" to "'.$maxCount.'", but received: "'.$actualCount.'".';
+        if ($hint) {
+            $message .= PHP_EOL . $hint;
+        }
+
+        $exception = self::getInstance();
+        $exception->message = $message;
+        $exception->code = self::ARGUMENT_ARRAY_WRONG_COUNT;
+        $exception->previous = $previous;
+        $exception->backtraceOffset = $backtraceOffset;
+
+        return $exception->generate(InvalidArgumentException::class);
     }
 
 }

@@ -1,5 +1,12 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.10 (progress, stableish) Tests unitaires Oeuvre
+
+Ajout de tests unitaires pour la classe Oeuvre (en cours)
+Corrections logiques multiples pour les tests unitaires
+Ajout de nouvelles exceptions dans ExceptionFactory (non testees)
+Catch et throw de nouvelles exceptions dans Querry
+
 ### Feat_BDD 0.9 (progress, UNSTABLE) Tests unitaires ExceptionFactory
 
 Ajout de tests unitaires pour la classe ExceptionFactory

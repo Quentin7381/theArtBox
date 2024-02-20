@@ -24,7 +24,7 @@
 
     if(empty($formatedSearch)) $formatedSearch = [];
 
-    $resultCount = Oeuvre::fetch($formatedSearch, ['select' => 'COUNT']);
+    $resultCount = Oeuvre::fetch($formatedSearch, ['select' => 'COUNT(*)']);
 
     $options = [
         'limit' => $cfg->db_defaultLimit,

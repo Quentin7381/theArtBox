@@ -133,7 +133,7 @@ class Oeuvre
             throw EF::argument_wrong_type(
                 'args',
                 $args,
-                ['array', 'object', 'string', 'int'],
+                ['associative array', 'object', 'positionnal strings and ints'],
                 'Arguments can be an associative array, an object, or positional arguments' .
                 '(titre, artiste, url_image, description, id)'
             );
@@ -205,9 +205,14 @@ class Oeuvre
      */
     public function get_image(): ?string
     {
+        if ($this->values['url_image'] === null && !$this->hydrated) {
+            $this->hydrate();
+        }
+
         if ($this->values['url_image'] === null) {
             return null;
         }
+
         return Config::getInstance()->url_img . $this->values['url_image'];
     }
 
@@ -255,10 +260,20 @@ class Oeuvre
      */
     public function set_column($key, $value)
     {
-        $value = htmlspecialchars($value);
-        $value = trim($value);
+        $value = $this->htmlspecialchars($value);
+        $value = $this->trim($value);
 
         $this->values[$key] = $value;
+    }
+
+    public function trim($value)
+    {
+        return trim($value);
+    }
+
+    public function htmlspecialchars($value)
+    {
+        return htmlspecialchars($value);
     }
 
     // ----- IMPORT / EXPORT -----
@@ -461,12 +476,17 @@ class Oeuvre
         foreach ($filters as $filter) {
             $params[$filter['column']] = $filter['value'];
         }
-        $stmt->execute($params);
+
+        try{
+            $stmt->execute($params);
+        } catch (PDOException $e){
+            throw EF::pdo_invalid_query($sql, $params, null, $e);
+        }
 
         // Récupération des résultats
         $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (!empty($options['select']) && $options['select'] === 'COUNT') {
+        if (!empty($options['select']) && $options['select'] === 'COUNT(*)') {
             return $results[0]['COUNT(*)'];
         }
 
@@ -554,7 +574,7 @@ class Oeuvre
         $this->sql = new Querry();
         $this->sql->select(self::$columns);
         $this->sql->from(self::$table);
-        $this->sql->where(['id' => $this->values['id']]);
+        $this->sql->where([['id', $this->values['id']]]);
 
         $sql = $this->sql->print();
 

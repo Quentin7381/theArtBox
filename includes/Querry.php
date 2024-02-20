@@ -113,6 +113,19 @@ class Querry {
 
     // ----- SELECT ----- //
     public function select($fields){
+        if(!is_array($fields)){
+            $fields = [$fields];
+        }
+
+        if(empty($fields)){
+            throw EF::argument_array_wrong_count(
+                'fields',
+                $fields,
+                1,
+                '+INF',
+                'The fields array must not be empty.'
+            );
+        }
         $this->reset();
         $this->querry['operation'] = 'SELECT';
         $this->querry['columns'] = $fields;
@@ -142,7 +155,18 @@ class Querry {
 
         foreach($conditions as $condition){
             if(!($condition instanceof Condition)){
-                $condition = Condition::generate($condition);
+                try{
+                    $condition = Condition::generate($condition);
+                } catch(Exception $e){
+                    throw EF::instance_wrong_parameter(
+                        'conditions',
+                        $conditions,
+                        'Associative array',
+                        'Confition::generate() failed with the following exception: ' . $e->getMessage(),
+                        $e,
+                        1
+                    );
+                }
             }
 
             $this->querry['where'][] = $condition;
@@ -279,6 +303,16 @@ class Querry {
     }
 
     protected function print_select(){
+        if(empty($this->querry['columns']) || empty($this->querry['table'])){
+            throw EF::instance_wrong_parameter(
+                'columns or table',
+                $this->querry['columns'] . ' or ' . $this->querry['table'],
+                'Not empty',
+                'The columns and table must be set to print a SELECT querry.' .
+                'Use the select() and from() methods to set the columns and table.'
+            );
+        }
+
         $str = 'SELECT ' . implode(', ', $this->querry['columns']) . ' ';
         $str .= 'FROM ' . $this->querry['table'] . ' ';
         $str .= $this->print_where() . ' ';
@@ -461,7 +495,7 @@ class Condition{
             !isset($args['column']) ||
             !isset($args['value'])
         ) {
-            throw EF::argument_array_missing_key('column or value');
+            throw EF::argument_array_missing_key('args', 'column or value', null, null, 1);
         }
 
         return new Condition(

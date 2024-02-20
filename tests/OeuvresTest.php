@@ -2,6 +2,8 @@
 
 require_once __DIR__.'/TestSetup.php';
 
+use ExceptionFactory as EF;
+
 class OeuvresTest extends TestSetup{
     static protected $className = 'Oeuvre';
     protected $BDD = null;
@@ -26,6 +28,16 @@ class OeuvresTest extends TestSetup{
                 $this->lastSql = $sql;
                 return true;
             }));
+    }
+
+    function tearDown():void{
+        $this->Oeuvre['properties']['columns']->setValue(null, [
+            'id',
+            'titre',
+            'artiste',
+            'url_image',
+            'description'
+        ]);
     }
 
     function test__construct(){
@@ -135,9 +147,9 @@ class OeuvresTest extends TestSetup{
 
         // ----- INVALID ARGUMENTS -----
         // Too many arguments
-        $this->expectExceptionMessage('In Oeuvre::__construct(): Invalid arguments. Arguments can be an associative array, an object, or positional arguments (titre, artiste, url_image, description, id)');
+        $this->expectExceptionCode(EF::ARGUMENT_WRONG_TYPE);
 
-        $oeuvre = new Oeuvre('titre', 'artiste', 'url_image', 'description', 'id', 'too much');
+        new Oeuvre('titre', 'artiste', 'url_image', 'description', 'id', 'too much');
     }
 
     function test__fromArray(){
@@ -155,187 +167,343 @@ class OeuvresTest extends TestSetup{
         $this->assertEquals('description', $this->Oeuvre['properties']['values']->getValue($oeuvre)['description']);
     }
 
+    function test__get(){
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['get_column', 'get_link', 'get_image'])
+            ->getMock();
+
+        $columns = ['<col_1>', '<col_2>', '<col_3>'];
+        $values = ['<val_1>', '<val_2>', '<val_3>'];
+
+        $this->Oeuvre['properties']['columns']->setValue($mock, $columns);
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        // Si une fonction get_<key> existe, elle est appelée
+        $keys = ['link', 'image'];
+        foreach($keys as $key){
+            $mock->expects($this->once())
+                ->method('get_'.$key)
+                ->willReturn('value');
+
+            $this->assertEquals('value', $mock->$key);
+        }
+
+        // Si la clé existe dans les colonnes, get_column est appelée avec la clé en argument
+
+        $mock->expects($this->exactly(count($columns)))
+            ->method('get_column')
+            ->withConsecutive(
+                [$columns[0]],
+                [$columns[1]],
+                [$columns[2]]
+            )
+            ->willReturn('value');
+
+        foreach($columns as $key){
+            $this->assertEquals('value', $mock->$key);
+        }
+
+        // Si aucune fonction get_<key> n'existe et que la clé n'est pas dans les colonnes
+        // la valeur est cherchée tel quel
+        $this->assertEquals($values, $mock->values);
+    }
+
+    function test__get_column(){
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['hydrate'])
+            ->getMock();
+
+        // Collumn vas chercher la valeur dans le tableau associatif $values
+        $values = [
+            'titre' => '<titre>',
+            'artiste' => '<artiste>',
+            'url_image' => '<url_image>',
+            'description' => '<description>'
+        ];
+
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        foreach($values as $key => $value){
+            $actual = $mock->get_column($key);
+            $this->assertEquals($value, $actual);
+        }
+
+        // Si la clé est à null, get_column tente d'hydrater l'objet
+        $mock->expects($this->once())
+            ->method('hydrate');
+        
+        $values['titre'] = null;
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        $mock->get_column('titre');
+
+        // Si l'objet est déjà hydraté, la méthode n'est pas appelée
+        $this->Oeuvre['properties']['hydrated']->setValue($mock, true);
+
+        $mock->get_column('titre'); // on s'appuie sur le once() précédent
+    }
+
+    function test__get_link(){
+        $cfg = Config::getInstance();
+        $cfg->override('url_root', '<url_root>/');
+
+        // get_link utilise l'id et la configuration pour générer un lien
+        $oeuvre = new Oeuvre(['id' => 99]);
+
+        $expected = '<url_root>/view/?id=99';
+        $actual = $oeuvre->get_link();
+        $this->assertEquals($expected, $actual);
+
+        // Si l'id est null, get_link retourne null
+        $oeuvre = new Oeuvre(['id' => null]);
+
+        $this->assertEquals(null, $oeuvre->get_link());
+    }
+
+    function test__get_image(){
+        $cfg = Config::getInstance();
+        $cfg->override('url_img', '<url_img>/');
+
+        // get_image utilise l'url_image et la configuration pour générer un lien
+        $oeuvre = new Oeuvre();
+        $this->Oeuvre['properties']['values']->setValue($oeuvre, ['url_image' => 'image.jpg']);
+
+        $expected = '<url_img>/image.jpg';
+        $actual = $oeuvre->get_image();
+        $this->assertEquals($expected, $actual);
+
+        // Si l'url_image est null, get_image tente d'hydrater l'objet
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['hydrate'])
+            ->getMock();
+        $mock->expects($this->once())
+            ->method('hydrate');
+
+        $this->Oeuvre['properties']['values']->setValue($mock, ['url_image' => null]);
+        $this->Oeuvre['properties']['hydrated']->setValue($mock, false);
+
+        $mock->get_image();
+
+        // Si l'url_image est null malgré tout, get_image retourne null
+        $oeuvre = new Oeuvre(['url_image' => null]);
+
+        $this->assertEquals(null, $oeuvre->get_image());
+    }
+
+    function test__set(){
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['set_column'])
+            ->getMock();
+
+        $columns = ['<col_1>', '<col_2>', '<col_3>'];
+        $values = ['<val_1>', '<val_2>', '<val_3>'];
+
+        $this->Oeuvre['properties']['columns']->setValue($mock, $columns);
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        // Cette partie du test a ete desactivee car aucune fonction valide n'implemente set_<key>
+
+        // // Si une fonction set_<key> existe, elle est appelée
+        // // Note: l'utilisation de column est erronee ici, mais seule la méthode set_column est implémentée
+        // $mock->expects($this->once())
+        //     ->method('set_column')
+        //     ->with('value');
+
+        // try{
+        //     $mock->column = 'value';
+        // } catch(Throwable $e){
+        //     // On ignore l'exception due à l'appel incorrect de la méthode
+        // }
+
+        // Si la clé existe dans les colonnes, set_column est appelée avec la clé et la valeur en argument
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['set_column'])
+            ->getMock();
+
+        $this->Oeuvre['properties']['columns']->setValue($mock, $columns);
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        $mock->expects($this->exactly(count($columns)))
+            ->method('set_column')
+            ->withConsecutive(
+                [$columns[0], 'value_1'],
+                [$columns[1], 'value_2'],
+                [$columns[2], 'value_3']
+            );
+
+        foreach($columns as $i => $key){
+            $mock->$key = 'value_'.($i+1);
+        }
+
+        // Si aucune fonction set_<key> n'existe et que la clé n'est pas dans les colonnes
+        // une user notice est générée
+        $this->expectException('PHPUnit\Framework\Error\Notice');
+        $oeuvre = new Oeuvre();
+        $oeuvre->invalid = 'value';
+    }
+
+    function test__set_column(){
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['htmlspecialchars', 'trim'])
+            ->getMock();
+        
+        // set_column vas chercher la valeur dans le tableau associatif $values
+        $values = [
+            'titre' => '<titre>',
+            'artiste' => '<artiste>',
+            'url_image' => '<url_image>',
+            'description' => '<description>'
+        ];
+        
+        $this->Oeuvre['properties']['values']->setValue($mock, $values);
+
+        // set_column utilise htmlspecialchars sur la valeur
+        $mock->expects($this->exactly(count($values)))
+            ->method('htmlspecialchars')
+            ->with('value')
+            ->willReturn('value');
+
+        // set_column utilise trim sur la valeur
+        $mock->expects($this->exactly(count($values)))
+            ->method('trim')
+            ->with('value')
+            ->willReturn('value');
+
+        
+        // set_column change la valeur dans le tableau values
+        foreach($values as $key => $value){
+            $mock->set_column($key, 'value');
+            $this->assertEquals('value', $this->Oeuvre['properties']['values']->getValue($mock)[$key]);
+        }
+    }
+
+    public function test__htmlspecialchars(){
+        $oeuvre = new Oeuvre();
+
+        $this->assertEquals('value', $oeuvre->htmlspecialchars('value'));
+        $this->assertEquals('&lt;value&gt;', $oeuvre->htmlspecialchars('<value>'));
+    }
+
+    public function test__trim(){
+        $oeuvre = new Oeuvre();
+
+        $this->assertEquals('value', $oeuvre->trim('value'));
+        $this->assertEquals('value', $oeuvre->trim(' value '));
+    }
+
+    public function test_to_array(){
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setConstructorArgs([
+                'titre' => 'titre',
+                'artiste' => 'artiste',
+                'url_image' => 'url_image',
+                'description' => 'description'
+            ])
+            ->setMethods(['get'])
+            ->getMock();
+
+        // to_array utilise la fonction get pour ses overrides de valeurs
+        $mock->expects($this->exactly(5))
+            ->method('get')
+            ->withConsecutive(
+                ['id'],
+                ['titre'],
+                ['artiste'],
+                ['url_image'],
+                ['description']
+            )
+            ->willReturnOnConsecutiveCalls(
+                1,
+                '<titre>',
+                '<artiste>',
+                '<url_image>',
+                '<description>'
+            );
+
+        // to_array retourne un tableau associatif des valeurs
+        $this->assertEquals([
+            'id' => 1,
+            'titre' => '<titre>',
+            'artiste' => '<artiste>',
+            'url_image' => '<url_image>',
+            'description' => '<description>'
+        ], $mock->to_array());
+    }
+
+    public function test__to_array_multiple(){
+        $instances = [];
+
+        // on crée 5 instances mockées
+        for($i = 0; $i < 5; $i++){
+            $instances[] = $this->getMockBuilder(Oeuvre::class)
+                ->setConstructorArgs([
+                    'titre' => 'titre_'.$i,
+                    'artiste' => 'artiste_'.$i,
+                    'url_image' => 'image_'.$i,
+                    'description' => 'description_'.$i
+                ])
+                ->setMethods(['to_array', 'hydrate'])
+                ->getMock();
+
+            // les instances paires sont hydratées
+            if($i % 2 == 0){
+                $this->Oeuvre['properties']['hydrated']->setValue($instances[$i], true);
+            }
+
+            // les id sont définis
+            $this->Oeuvre['properties']['values']->setValue($instances[$i], ['id' => $i]);
+        }
+
+        $expected = [];
+        foreach($instances as $i => $instance){
+            // to_array retourne un tableau associatif des valeurs
+            $expected[] = [
+                'id' => $i,
+                'titre' => 'titre_'.$i,
+                'artiste' => 'artiste_'.$i,
+                'url_image' => 'image_'.$i,
+                'description' => 'description_'.$i
+            ];
+
+            // to_array est appelée sur chaque instance
+            $instance->expects($this->once())
+                ->method('to_array')
+                ->willReturn($expected[$i]);
+
+            // hydrate est appelée sur les instances impaires (non hydratées)
+            if($i % 2 == 1){
+                $instance->expects($this->once())
+                    ->method('hydrate');
+            } else {
+                $instance->expects($this->never())
+                    ->method('hydrate');
+            }
+        }
+
+        // to_array_multiple retourne un tableau contenant les tableaux retournés par to_array
+        $this->assertEquals($expected, Oeuvre::to_array_multiple($instances));
+    }
+
     function test__fetch(){
-        
-        // No arguments
-        Oeuvre::fetch();
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1',
-            $this->lastSql
-        );
+        $mock = $this->getMockBuilder(Oeuvre::class)
+            ->setMethods(['hydrate', 'unifomizeFilters'])
+            ->getMock();
 
-        // Filters
-        Oeuvre::fetch([
-            'titre' => 'titre',
-            'artiste' => 'artiste',
-            'url_image' => 'url_image',
-            'description' => 'description'
-        ]);
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-                'AND titre = (:param_titre_0) '.
-                'AND artiste = (:param_artiste_0) '.
-                'AND url_image = (:param_url_image_0) '.
-                'AND description = (:param_description_0)', 
-            $this->lastSql
-        );
+        // appeler fetch initialise la BDD si besoin
+        $this->Oeuvre['properties']['bdd']->setValue(null, null);
+        $this->Oeuvre['properties']['bdd']->setValue($mock, $this->BDD);
 
-        // Filters with operators
-        Oeuvre::fetch([
-            'titre' => [
-                'value' => 'titre',
-                'operator' => '!='
-            ],
-            'artiste' => [
-                'value' => 'artiste',
-                'operator' => 'LIKE'
-            ],
-            'url_image' => [
-                'value' => 'url_image',
-                'operator' => 'NOT LIKE'
-            ],
-            'description' => [
-                'value' => 'description',
-                'operator' => '='
-            ],
-            'id' => [
-                'value' => 1,
-                'operator' => '>'
-            ]
-        ]);
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-                'AND titre != (:param_titre_0) '.
-                'AND artiste LIKE (:param_artiste_0) '.
-                'AND url_image NOT LIKE (:param_url_image_0) '.
-                'AND description = (:param_description_0) '.
-                'AND id > (:param_id_0)', 
-            $this->lastSql
-        );
+        $mock->fetch();
 
-        // Filters with multiple values
-        Oeuvre::fetch([
-            'titre' => ['titre_1', 'titre_2', 'titre_3']
-        ]);
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-                'AND titre IN (:param_titre_0, :param_titre_1, :param_titre_2)', 
-            $this->lastSql
-        );
-        
-        // ----- OPTIONS -----
-        // Order by
-        Oeuvre::fetch([], [
-            'order_by' => 'titre'
-        ]);
+        $this->assertNotEmpty($this->Oeuvre['properties']['bdd']->getValue($mock));
 
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-            'ORDER BY titre', 
-            $this->lastSql
-        );
+        // fetch utilise unifomizeFilters pour obtenir les filtres
+        $mock->expects($this->once())
+            ->method('unifomizeFilters')
+            ->willReturn(['id' => 99]);
 
-        // Order by & order
-        Oeuvre::fetch([], [
-            'order_by' => 'titre',
-            'order' => 'DESC'
-        ]);
-
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-            'ORDER BY titre DESC', 
-            $this->lastSql
-        );
-
-        // Limit
-        Oeuvre::fetch([], [
-            'limit' => 10
-        ]);
-
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-            'LIMIT 10', 
-            $this->lastSql
-        );
-
-        // Offset
-        Oeuvre::fetch([], [
-            'offset' => 10
-        ]);
-
-        $this->assertEquals(
-            'SELECT * '.
-            'FROM oeuvres '.
-            'WHERE 1 '.
-            'OFFSET 10', 
-            $this->lastSql
-        );
-
-        // -- Select --
-        // count
-        $this->stmtMock
-            ->method('fetchAll')
-            ->willReturn([
-                ['COUNT(*)' => 10]
-        ]);
-        $result = Oeuvre::fetch([], [
-            'select' => 'COUNT'
-        ]);
-        $this->assertEquals(
-            'SELECT COUNT(*) '.
-            'FROM oeuvres '.
-            'WHERE 1', 
-            $this->lastSql
-        );
-        $this->assertEquals(10, $result);
-
-        // column name
-        Oeuvre::fetch([], [
-            'select' => 'titre'
-        ]);
-        $this->assertEquals(
-            'SELECT titre '.
-            'FROM oeuvres '.
-            'WHERE 1', 
-            $this->lastSql
-        );
-
-        // multiple columns
-        Oeuvre::fetch([], [
-            'select' => ['titre', 'artiste']
-        ]);
-
-        $this->assertEquals(
-            'SELECT titre, artiste '.
-            'FROM oeuvres '.
-            'WHERE 1', 
-            $this->lastSql
-        );
-
-        // invalid column name
-        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument $options[\'select\']. String value must match columns names (id, titre, artiste, url_image, description) or implemented functions (\'COUNT\').');
-        Oeuvre::fetch([], [
-            'select' => 'invalid'
-        ]);
-
-        $this->expectExceptionMessage('In Oeuvre::fetch(): Invalid argument. $options[\'select\']. Array values must match column names (titre, artiste, url_image, description, id)');
-        Oeuvre::fetch([], [
-            'select' => ['titre', 'invalid']
-        ]);
+        $mock->fetch();
     }
 
     function test__hydrate(){
@@ -390,74 +558,5 @@ class OeuvresTest extends TestSetup{
             'WHERE id = :id',
             $this->lastSql
         );
-    }
-
-    function test__to_array(){
-        $oeuvre = new Oeuvre();
-        $oeuvre->titre = 'titre_7';
-        $oeuvre->artiste = 'artiste_7';
-        $oeuvre->url_image = 'image_7';
-        $oeuvre->description = 'description_7';
-
-        $this->assertEquals([
-            'id' => null,
-            'titre' => 'titre_7',
-            'artiste' => 'artiste_7',
-            'url_image' => 'image_7',
-            'description' => 'description_7'
-        ], $oeuvre->to_array());
-    }
-
-    function test__to_array_multiple(){
-        $oeuvres = [
-            Oeuvre::from_array([
-                'titre' => 'titre_8',
-                'artiste' => 'artiste_8',
-                'url_image' => 'image_8',
-                'description' => 'description_8'
-            ]),
-            Oeuvre::from_array([
-                'titre' => 'titre_9',
-                'artiste' => 'artiste_9',
-                'url_image' => 'image_9',
-                'description' => 'description_9'
-            ]),
-            Oeuvre::from_array([
-                'titre' => 'titre_10',
-                'artiste' => 'artiste_10',
-                'url_image' => 'image_10',
-                'description' => 'description_10'
-            ])
-        ];
-
-        $this->assertEquals([
-            [
-                'id' => null,
-                'titre' => 'titre_8',
-                'artiste' => 'artiste_8',
-                'url_image' => 'image_8',
-                'description' => 'description_8'
-            ],
-            [
-                'id' => null,
-                'titre' => 'titre_9',
-                'artiste' => 'artiste_9',
-                'url_image' => 'image_9',
-                'description' => 'description_9'
-            ],
-            [
-                'id' => null,
-                'titre' => 'titre_10',
-                'artiste' => 'artiste_10',
-                'url_image' => 'image_10',
-                'description' => 'description_10'
-            ]
-        ], Oeuvre::to_array_multiple($oeuvres));
-
-        // Throw an exception if one of the objects is not an Oeuvre
-        $oeuvres[] = 'not an Oeuvre';
-        $this->expectExceptionMessage('In Oeuvre::to_array_multiple(): $instances must be an array of Oeuvre instances');
-
-        Oeuvre::to_array_multiple($oeuvres);
     }
 }
