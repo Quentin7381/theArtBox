@@ -15,14 +15,19 @@
 
 [ ] Documentation
 
-[ ] Ajout couche de validation php/js
+[x] Ajout couche de validation php/js
 
 [ ] Tests unitaires
     [ ] Mocks
 
 [ ] Corrections
-    [ ] Retirer vendor de GIT
-    [ ] Accolades sur IF
-    [ ] SELECT * -> vrais champs
-    [ ] Ajout erreur si détail non existant
-    [ ] + verifier fiche auto evaluation
+    [x] Retirer vendor de GIT
+    [x] SonnarLint
+    [x] Typage
+    [x] Doc
+    [ ] Eclater en sous fonctions
+    [x] SELECT * -> vrais champs
+    [ ] Gestion des Exceptions personnalisée
+    [x] Ajout erreur si détail non existant
+    [x] + verifier fiche auto evaluation
+    [ ] revoir verification exceptions tests

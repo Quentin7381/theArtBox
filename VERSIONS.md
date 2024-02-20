@@ -1,5 +1,14 @@
 # Versions du projet theArtbox
 
+### Feat_BDD 0.6 Ajout classe Querry
+
+Ajout d'une classe querry pour refactoriser les requetes SQL
+
+### Feat_BDD 0.5 Sonnarlint & commentaires
+
+Amelioration de la qualite du code avec Sonarlint
+Ajout de commentaires dans le code
+
 ### Feat_BDD 0.4 Prise en charge des erreurs de formulaire
 
 Verification des saisies (tailles min et max, etc.)
