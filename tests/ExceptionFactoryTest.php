@@ -281,16 +281,11 @@ class ExceptionFactoryTest extends TestSetup{
         // injection du mock dans les instances générées par getInstance
         $this->ExceptionFactory['properties']['instance']->setValue($EF, $EF);
 
-        
-        $callback = function() use ($EF){
-            return $EF;
-        };
-
         // argument_array_wrong_count appelle generate avec InvalidArgumentException
         $EF->expects($this->once())
             ->method('generate')
             ->with(InvalidArgumentException::class)
-            ->willReturnCallback($callback);
+            ->willReturnCallback($EF);
         
         $argumentName = '<argumentName>';
         $argumentCount = '<argumentCount>';

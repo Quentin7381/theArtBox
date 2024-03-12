@@ -154,21 +154,22 @@ class Querry {
         }
 
         foreach($conditions as $condition){
-            if(!($condition instanceof Condition)){
-                try{
-                    $condition = Condition::generate($condition);
-                } catch(Exception $e){
-                    throw EF::instance_wrong_parameter(
-                        'conditions',
-                        $conditions,
-                        'Associative array',
-                        'Confition::generate() failed with the following exception: ' . $e->getMessage(),
-                        $e,
-                        1
-                    );
-                }
+            try{
+                $condition = Condition::generate($condition);
+            } catch(Exception $e){
+                throw EF::instance_wrong_parameter(
+                    'conditions',
+                    $conditions,
+                    'Associative array',
+                    'Confition::generate() failed with the following exception: ' . $e->getMessage(),
+                    $e,
+                    1
+                );
             }
 
+            if($parametric){
+                $condition->value = ':' . $condition->value;
+            }
             $this->querry['where'][] = $condition;
         }
     }
@@ -183,6 +184,9 @@ class Querry {
             );
         }
         
+        if(!is_array($orders)){
+            $orders = [$orders];
+        }
         foreach($orders as $order){
             if(!($order instanceof Order)){
                 $order = Order::generate($order);
@@ -192,7 +196,7 @@ class Querry {
         }
     }
 
-    public function limit($limit){
+    public function limit($limit, $offset = null){
         if($this->querry['operation'] != 'SELECT'){
             throw EF::instance_wrong_parameter(
                 'operation',
@@ -242,8 +246,17 @@ class Querry {
         }
         
         foreach($conditions as $condition){
-            if(!($condition instanceof Condition)){
+            try{
                 $condition = Condition::generate($condition);
+            } catch(Exception $e){
+                throw EF::instance_wrong_parameter(
+                    'conditions',
+                    $conditions,
+                    'Associative array',
+                    'Confition::generate() failed with the following exception: ' . $e->getMessage(),
+                    $e,
+                    1
+                );
             }
 
             $this->querry['having'][] = $condition;
@@ -273,6 +286,9 @@ class Querry {
                 $set = Set::generate($set);
             }
 
+            if($parametric){
+                $set->value = ':' . $set->value;
+            }
             $this->querry['set'][] = $set;
         }
     }
@@ -357,7 +373,6 @@ class Querry {
             return '';
         }
         $str = 'WHERE ';
-
         
         foreach($this->querry['where'] as $key => $condition){
             if($key != 0){
@@ -429,12 +444,15 @@ class Querry {
  * Un tableau associatif de
  */
 class Set{
+    public $column;
+    public $value;
+
     public function __construct($column, $value){
         $this->column = $column;
         $this->value = $value;
     }
 
-    public static function generate($args){
+    public static function generate(...$args){
         if(empty($args) || count($args) > 2){
             throw EF::argument_array_wrong_count(
                 'args',
@@ -464,56 +482,16 @@ class Set{
     }
 }
 
-class Condition{
-    public function __construct($column, $value, $operator = '=', $connector = 'AND'){
-        $this->column = $column;
-        $this->operator = $operator;
-        $this->value = $value;
-        $this->connector = $connector;
-    }
-
-    public static function generate($args){
-        $keys = ['column', 'value', 'operator', 'connector'];
-
-        // Les $args est un tableau non indexé
-        if(!isAssoc($args)){
-            if(count($args) < 2 || count($args) > 4){
-                throw EF::argument_array_wrong_count(
-                    'args',
-                    count($args),
-                    2,
-                    4,
-                    'The condition() method takes 2 to 4 arguments.'
-                );
-            }
-
-            $keys = array_slice($keys, 0, count($args));
-            $args = array_combine($keys, $args);
-        }
-
-        if(
-            !isset($args['column']) ||
-            !isset($args['value'])
-        ) {
-            throw EF::argument_array_missing_key('args', 'column or value', null, null, 1);
-        }
-
-        return new Condition(
-            $args['column'],
-            $args['value'],
-            $args['operator'] ?? '=',
-            $args['connector'] ?? 'AND'
-        );
-    }
-}
-
 class Order{
+    public $field;
+    public $order;
+
     public function __construct($field, $order = 'ASC'){
         $this->field = $field;
         $this->order = $order;
     }
 
-    public static function generate($args){
+    public static function generate(...$args){
         if(empty($args) || count($args) > 2){
             throw EF::argument_array_wrong_count(
                 'args',

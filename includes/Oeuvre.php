@@ -273,7 +273,7 @@ class Oeuvre
 
     public function htmlspecialchars($value)
     {
-        return htmlspecialchars($value);
+        return htmlspecialchars((string)$value);
     }
 
     // ----- IMPORT / EXPORT -----
@@ -449,19 +449,17 @@ class Oeuvre
         $sql->from(self::$table);
         
         $filters = self::uniformizeFilters($filters);
-        foreach ($filters as $filter) {
-            $sql->where($filter);
-        }
+        $sql->where($filters, false);
 
         // Ajout des options
         if (!empty($options['order_by'])) {
             $sql->order_by($options['order_by']);
         }
         if (!empty($options['limit'])) {
-            $sql->limit($options['limit'], $options['offset'] ?? 0);
+            $sql->limit($options['limit']);
         }
-        if (!empty($options['offset'])) {
-            $sql->limit($options['limit'], $options['offset']);
+        if(!empty($options['offset'])){
+            $sql->offset($options['offset']);
         }
         if (!empty($options['order'])) {
             $sql->order_by($options['order']);
@@ -472,13 +470,8 @@ class Oeuvre
         // Exécution de la requête
         $stmt = self::$bdd->prepare($sql);
 
-        $params = [];
-        foreach ($filters as $filter) {
-            $params[$filter['column']] = $filter['value'];
-        }
-
         try{
-            $stmt->execute($params);
+            $stmt->execute();
         } catch (PDOException $e){
             throw EF::pdo_invalid_query($sql, $params, null, $e);
         }
@@ -522,6 +515,18 @@ class Oeuvre
                 $value = $filter['value'];
                 $operator = $filter['operator'] ?? '=';
                 $connector = $filter['connector'] ?? 'AND';
+                $column = $filter['column'] ?? $column;
+            }
+
+            if(
+                // Le filtre est un objet contenant un parametre 'value' (et optionellement un parametre 'operator')
+                is_object($filter)
+                && isset($filter->value)
+            ){
+                $value = $filter->value;
+                $operator = $filter->operator ?? '=';
+                $connector = $filter->connector ?? 'AND';
+                $column = $filter->column ?? $column;
             }
 
             elseif (
@@ -574,7 +579,8 @@ class Oeuvre
         $this->sql = new Querry();
         $this->sql->select(self::$columns);
         $this->sql->from(self::$table);
-        $this->sql->where([['id', $this->values['id']]]);
+        $filters = self::uniformizeFilters(['id' => 'id']);
+        $this->sql->where($filters, true);
 
         $sql = $this->sql->print();
 
@@ -621,9 +627,16 @@ class Oeuvre
     {
         $this->sql = new Querry();
         $this->sql->insert_into(self::$table);
-        $this->sql->values(self::$columns);
-        $sql = $this->sql->print();
 
+        $columns = self::$columns;
+        // On retire la colonne id pour l'insertion
+        unset($columns[array_search('id', $columns)]);
+        // Les clés (identifiants des colonnes) et les valeurs (noms des variables) sont les mêmes
+        $columns = array_combine($columns, $columns);
+
+        $this->sql->values($columns);
+
+        $sql = $this->sql->print();
         $stmt = self::$bdd->prepare($sql);
         $success = $stmt->execute([
             'titre' => $this->get('titre'),
@@ -653,7 +666,8 @@ class Oeuvre
         $this->sql = new Querry();
         $this->sql->update(self::$table);
         $this->sql->set(['titre', 'artiste', 'url_image', 'description']);
-        $this->sql->where('id', $this->get('id'));
+        $filters = self::uniformizeFilters(['id' => 'id']);
+        $this->sql->where($filters);
 
         $sql = $this->sql->print();
 
@@ -686,7 +700,8 @@ class Oeuvre
 
         $this->sql = new Querry();
         $this->sql->delete(self::$table);
-        $this->sql->where('id', $this->get('id'));
+        $filters = self::uniformizeFilters(['id' => 'id']);
+        $this->sql->where($filters);
 
         $sql = $this->sql->print();
 

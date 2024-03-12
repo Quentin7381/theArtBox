@@ -18,18 +18,18 @@ function saveImage($image){
     }
     $image_size = $image['size'];
     $image_error = $image['error'];
-    $image_type = $image['type'];
+    $image_extension = $image['type'];
 
     // get true extension of image, even if it have been renamed
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $image_extension = finfo_file($finfo, $image_tmp_name);
-    $image_extension= str_replace('image/', '', $image_extension);
     finfo_close($finfo);
+    $image_extension = explode('/', $image_extension)[1];
 
     if($image_error === 0){
         if($image_size <= 1000000){
             $n = 2;
-            while(file_exists($cfg->path_img.$image_name)){
+            while(file_exists($cfg->path_img.$image_name) && $n < 1000){
                 $image_name = $base_name.'_'.$n.'.'.$image_extension;
             }
 
@@ -49,10 +49,13 @@ function getErrors($data){
     if(strlen($_POST['artiste']) > 80) return 'L\'artiste doit faire moins de 80 caractères';
     if(empty($_FILES)) return 'L\'image est obligatoire';
     return null;
-}
+    }
 
 $error = null;
-if(!in_array($_POST['action'], ['search, delete'])) $error = getErrors($_POST);
+if(!in_array($_POST['action'], ['search', 'delete'])){
+    $error = getErrors($_POST);
+}
+
 if(!empty($error)){
     header('Location: '.$cfg->url_admin.'/?action=error&message='.$error);
     exit;
@@ -69,7 +72,9 @@ switch($_POST['action']){
         $oeuvre->titre = $_POST['titre'];
         $oeuvre->artiste = $_POST['artiste'];
         $oeuvre->description = $_POST['description'];
-        $oeuvre->url_image = saveImage($_FILES['image']);
+        if(!empty($_FILES['image'] && $_FILES['image']['error'] === 0)){
+            $oeuvre->url_image = saveImage($_FILES['image']);
+        }
         $oeuvre->save();
         header('Location: '.$cfg->url_admin.'/?action=update');
         exit;

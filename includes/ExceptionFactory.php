@@ -12,7 +12,6 @@
  * @method static argument_array_missing_key()
  * @method static file_not_found()
  * @method static pdo_invalid_query()
- * @method static argument_array_wrong_count()
  */
 class ExceptionFactory {
     /**
@@ -119,6 +118,10 @@ class ExceptionFactory {
         return $instance;
     }
 
+    public function set(string $property, $value){
+        $this->$property = $value;
+    }
+
     /**
      * Réinitialise les propriétés de l'instance
      *
@@ -127,7 +130,7 @@ class ExceptionFactory {
     public function reset(){
         $properties = ['message', 'code', 'file', 'line', 'trace', 'class', 'previous', 'backtrace', 'function', 'arguments', 'backtraceOffset'];
         foreach($properties as $property){
-            $this->$property = null;
+            $this->set($property, null);
         }
     }
 
@@ -140,12 +143,12 @@ class ExceptionFactory {
     public function getStack(int $offset = 0){
         $offset = $offset + static::ADDITIONAL_OFFSET;
 
-        $this->backtrace = debug_backtrace();
-        $this->class = $this->backtrace[$offset]['class'] ?? '';
-        $this->function = $this->backtrace[$offset]['function'] ?? '';
-        $this->file = $this->backtrace[$offset]['file'] ?? '';
-        $this->line = $this->backtrace[$offset]['line'] ?? '';
-        $this->arguments = $this->backtrace[$offset]['args'] ?? '';
+        $this->set('backtrace', debug_backtrace());
+        $this->set('class', $this->backtrace[$offset]['class'] ?? '');
+        $this->set('function', $this->backtrace[$offset]['function'] ?? '');
+        $this->set('file', $this->backtrace[$offset]['file'] ?? '');
+        $this->set('line', $this->backtrace[$offset]['line'] ?? '');
+        $this->set('arguments', $this->backtrace[$offset]['args'] ?? '');
     }
 
     /**
@@ -157,12 +160,12 @@ class ExceptionFactory {
         $message = '';
         $message .= 'In ' . $this->class;
         $message .='::' . $this->function;
-        $message .= '(' . implode(', ', $this->arguments) . '):' . PHP_EOL;
+        @$message .= '(' . implode(', ', $this->arguments) . '):' . PHP_EOL;
         $message .= 'Line ' . $this->line;
         $message .= ' in ' . $this->file . PHP_EOL;
         $message .= $this->message;
 
-        $this->message = $message;
+        $this->set('message', $message);
     }
 
     /**
@@ -201,16 +204,16 @@ class ExceptionFactory {
     {
         
         $message = 'The parameter "'.$parameterName.'" has an invalid value.';
-        $message .='Expected: "'.$expectedValue.'", but received: "'.$parameterValue.'".';
+        @$message .='Expected: "'.$expectedValue.'", but received: "'.$parameterValue.'".';
         if ($hint) {
             $message .= PHP_EOL . $hint;
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::INSTANCE_WRONG_PARAMETER;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::INSTANCE_WRONG_PARAMETER);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(LogicException::class);
     }
@@ -248,10 +251,10 @@ class ExceptionFactory {
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::ARGUMENT_WRONG_TYPE;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::ARGUMENT_WRONG_TYPE);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(InvalidArgumentException::class);
     }
@@ -283,10 +286,10 @@ class ExceptionFactory {
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::INSTANCE_ARRAY_MISSING_KEY;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::INSTANCE_ARRAY_MISSING_KEY);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(InvalidArgumentException::class);
     }
@@ -315,10 +318,10 @@ class ExceptionFactory {
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::INSTANCE_ARRAY_MISSING_KEY;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::INSTANCE_ARRAY_MISSING_KEY);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(Exception::class);
     }
@@ -352,10 +355,10 @@ class ExceptionFactory {
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::PDO_INVALID_QUERY;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::PDO_INVALID_QUERY);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(PDOException::class);
     }
@@ -391,10 +394,10 @@ class ExceptionFactory {
         }
 
         $exception = self::getInstance();
-        $exception->message = $message;
-        $exception->code = self::ARGUMENT_ARRAY_WRONG_COUNT;
-        $exception->previous = $previous;
-        $exception->backtraceOffset = $backtraceOffset;
+        $exception->set('message', $message);
+        $exception->set('code', self::ARGUMENT_ARRAY_WRONG_COUNT);
+        $exception->set('previous', $previous);
+        $exception->set('backtraceOffset', $backtraceOffset);
 
         return $exception->generate(InvalidArgumentException::class);
     }

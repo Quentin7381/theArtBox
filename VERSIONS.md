@@ -1,5 +1,7 @@
 # Versions du projet theArtbox
 
+## 0.12 (progress, stable on site, red tests) version 'stable' pour prod
+
 ## 0.11 (progress, stableish) Typage et commentaires ExceptionFactory
 
 Ajout de typage dans ExceptionFactory

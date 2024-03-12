@@ -31,3 +31,6 @@
     [x] Ajout erreur si détail non existant
     [x] + verifier fiche auto evaluation
     [ ] revoir verification exceptions tests
+
+[x] Soutenance :
+    [x] FIX : ajout/modif/suppr oeuvres dans admin
